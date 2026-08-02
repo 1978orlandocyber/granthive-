@@ -241,7 +241,10 @@ exports.handler = async function handler(event) {
   }
 
   if (!providerCall.response.ok) {
-    console.error('Anthropic API returned a non-success status.');
+console.error(
+  'Anthropic API returned a non-success status:',
+  providerCall.response.status
+);
     return safeError(502, 'Eligibility service is temporarily unavailable. Please try again.');
   }
 
