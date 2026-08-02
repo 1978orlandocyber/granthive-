@@ -240,11 +240,36 @@ exports.handler = async function handler(event) {
     );
   }
 
-  if (!providerCall.response.ok) {
-console.error(
-  'Anthropic API returned a non-success status:',
-  providerCall.response.status
-);
+if (!providerCall.response.ok) {
+  let providerErrorType = 'unknown_error';
+  let providerErrorMessage = 'No provider message returned.';
+
+  try {
+    const errorData = await providerCall.response.json();
+
+    if (typeof errorData?.error?.type === 'string') {
+      providerErrorType = errorData.error.type;
+    }
+
+    if (typeof errorData?.error?.message === 'string') {
+      providerErrorMessage = errorData.error.message.slice(0, 300);
+    }
+  } catch {
+    providerErrorMessage = 'Provider error response was not valid JSON.';
+  }
+
+  console.error(
+    'Anthropic API error:',
+    providerCall.response.status,
+    providerErrorType,
+    providerErrorMessage
+  );
+
+  return safeError(
+    502,
+    'Eligibility service is temporarily unavailable. Please try again.'
+  );
+}
     return safeError(502, 'Eligibility service is temporarily unavailable. Please try again.');
   }
 
