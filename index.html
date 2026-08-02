@@ -67,6 +67,7 @@
     gap: 0;
     padding: 20px 32px 0;
     border-bottom: 1px solid var(--border);
+    overflow-x: auto;
   }
 
   .tab {
@@ -80,6 +81,7 @@
     letter-spacing: 0.3px;
     text-transform: uppercase;
     font-family: 'DM Mono', monospace;
+    white-space: nowrap;
   }
 
   .tab.active {
@@ -173,7 +175,7 @@
     gap: 8px;
   }
 
-  .btn:hover { background: var(--gold-light); transform: translateY(-1px); }
+  .btn:hover:not(:disabled) { background: var(--gold-light); transform: translateY(-1px); }
   .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
 
   .btn-ghost {
@@ -386,6 +388,15 @@
     overflow: hidden;
   }
 
+  .error-box {
+    color: var(--error);
+    font-size: 14px;
+    background: rgba(224,92,92,0.08);
+    border: 1px solid rgba(224,92,92,0.25);
+    border-radius: 8px;
+    padding: 14px 16px;
+  }
+
   /* Pulse loader for skeleton */
   @keyframes pulse { 0%,100%{opacity:.3} 50%{opacity:.7} }
   .skeleton {
@@ -406,9 +417,9 @@
 </header>
 
 <div class="tabs">
-  <div class="tab active" onclick="switchTab('eligibility')">Eligibility Checker</div>
-  <div class="tab" onclick="switchTab('grants')">Grants.gov Search</div>
-  <div class="tab" onclick="switchTab('code')">Swift Integration Code</div>
+  <div class="tab active" onclick="switchTab('eligibility', event)">Eligibility Checker</div>
+  <div class="tab" onclick="switchTab('grants', event)">Grants.gov Search</div>
+  <div class="tab" onclick="switchTab('code', event)">Swift Integration Code</div>
 </div>
 
 <!-- ELIGIBILITY CHECKER -->
@@ -417,7 +428,7 @@
   <p class="section-sub">Enter your organization profile and a grant description — Claude will score your eligibility and flag each requirement.</p>
 
   <div class="tip-box">
-    💡 This is the exact logic you'll wire into GrantHive. The onboarding profile data maps directly to the fields below.
+    💡 Eligibility requests now pass through GrantHive’s secure Netlify Function. The Anthropic API key never enters the browser.
   </div>
 
   <div class="card">
@@ -447,11 +458,11 @@
     <div class="row">
       <div>
         <label>Industry / Focus Area</label>
-        <input type="text" id="org-industry" placeholder="e.g. Health & Wellness, Clean Energy, Education" value="Health & Wellness">
+        <input type="text" id="org-industry" placeholder="e.g. Health & Wellness, Clean Energy, Education" value="Health & Wellness" maxlength="200">
       </div>
       <div>
         <label>Location (State)</label>
-        <input type="text" id="org-location" placeholder="e.g. Florida, New York, California" value="Florida">
+        <input type="text" id="org-location" placeholder="e.g. Florida, New York, California" value="Florida" maxlength="200">
       </div>
     </div>
     <label>Number of Employees</label>
@@ -467,9 +478,9 @@
   <div class="card">
     <div class="card-title">Grant Description</div>
     <label>Paste the full grant description or eligibility requirements</label>
-    <textarea id="grant-desc" placeholder="Paste grant description here...">The SBIR Phase I grant supports early-stage small businesses engaged in research and development with potential for commercialization. Eligible applicants must be: a for-profit U.S. small business with 500 or fewer employees, majority owned by U.S. citizens or permanent residents, and operating in a STEM-related field. Projects must demonstrate innovative technology with a clear path to commercialization. Maximum award is $275,000. Principal Investigator must be primarily employed by the applicant organization.</textarea>
+    <textarea id="grant-desc" placeholder="Paste grant description here..." maxlength="8000">The SBIR Phase I grant supports early-stage small businesses engaged in research and development with potential for commercialization. Eligible applicants must be: a for-profit U.S. small business with 500 or fewer employees, majority owned by U.S. citizens or permanent residents, and operating in a STEM-related field. Projects must demonstrate innovative technology with a clear path to commercialization. Maximum award is $275,000. Principal Investigator must be primarily employed by the applicant organization.</textarea>
     <label>Grant Name (optional)</label>
-    <input type="text" id="grant-name" placeholder="e.g. SBIR Phase I — NIH" value="SBIR Phase I — NIH">
+    <input type="text" id="grant-name" placeholder="e.g. SBIR Phase I — NIH" value="SBIR Phase I — NIH" maxlength="200">
   </div>
 
   <button class="btn" id="check-btn" onclick="runEligibilityCheck()">
@@ -624,109 +635,71 @@
 
   <div class="card">
     <div class="card-title">File 2 — EligibilityService.swift</div>
-    <p style="font-size:13px;color:var(--muted);margin-bottom:12px;">Sends org profile + grant description to Claude API and returns structured eligibility analysis.</p>
-    <div class="code-block"><span class="c">// EligibilityService.swift — Add to GrantHive Xcode project</span>
+    <p style="font-size:13px;color:var(--muted);margin-bottom:12px;">Calls the secure GrantHive backend function. No Anthropic key is stored or shipped in the app.</p>
+    <div class="code-block"><span class="c">// EligibilityService.swift — replace YOUR-DOMAIN after deployment</span>
 <span class="k">import</span> Foundation
 
-<span class="k">struct</span> EligibilityResult {
-    <span class="k">let</span> score: Int           <span class="c">// 0–100</span>
-    <span class="k">let</span> verdict: String      <span class="c">// "Likely Eligible" | "Review Required" | "Ineligible"</span>
-    <span class="k">let</span> checks: [EligCheck]
-    <span class="k">let</span> summary: String
-}
-
-<span class="k">struct</span> EligCheck {
+<span class="k">struct</span> EligibilityCheck: Codable {
     <span class="k">let</span> requirement: String
-    <span class="k">let</span> status: String       <span class="c">// "yes" | "no" | "maybe"</span>
+    <span class="k">let</span> status: String
     <span class="k">let</span> note: String
 }
 
-<span class="k">class</span> EligibilityService {
-    <span class="k">private let</span> apiKey = <span class="s">"YOUR_ANTHROPIC_API_KEY"</span>
+<span class="k">struct</span> EligibilityResult: Codable {
+    <span class="k">let</span> score: Int
+    <span class="k">let</span> verdict: String
+    <span class="k">let</span> summary: String
+    <span class="k">let</span> checks: [EligibilityCheck]
+}
 
-    <span class="k">func</span> check(profile: UserProfile, grantDescription: String,
-               completion: @escaping (EligibilityResult?) -> Void) {
+<span class="k">struct</span> EligibilityRequest: Codable {
+    <span class="k">let</span> profile: OrganizationProfile
+    <span class="k">let</span> grantName: String
+    <span class="k">let</span> grantDescription: String
+}
 
-        <span class="k">let</span> prompt = buildPrompt(profile: profile, grant: grantDescription)
+<span class="k">struct</span> OrganizationProfile: Codable {
+    <span class="k">let</span> orgType: String
+    <span class="k">let</span> stage: String
+    <span class="k">let</span> industry: String
+    <span class="k">let</span> location: String
+    <span class="k">let</span> employees: String
+}
 
-        <span class="k">let</span> body: [String: Any] = [
-            <span class="s">"model"</span>: <span class="s">"claude-sonnet-4-20250514"</span>,
-            <span class="s">"max_tokens"</span>: 1000,
-            <span class="s">"messages"</span>: [[<span class="s">"role"</span>: <span class="s">"user"</span>, <span class="s">"content"</span>: prompt]]
-        ]
+<span class="k">enum</span> EligibilityServiceError: Error {
+    <span class="k">case</span> invalidURL
+    <span class="k">case</span> invalidResponse
+    <span class="k">case</span> serverError
+}
 
-        <span class="k">var</span> request = URLRequest(url: URL(string: <span class="s">"https://api.anthropic.com/v1/messages"</span>)!)
+<span class="k">final class</span> EligibilityService {
+    <span class="c">// Replace this URL after Netlify deployment.</span>
+    <span class="k">private let</span> endpoint =
+        <span class="s">"https://YOUR-DOMAIN.netlify.app/.netlify/functions/check-eligibility"</span>
+
+    <span class="k">func</span> check(requestBody: EligibilityRequest) async throws -> EligibilityResult {
+        <span class="k">guard let</span> url = URL(string: endpoint) <span class="k">else</span> {
+            <span class="k">throw</span> EligibilityServiceError.invalidURL
+        }
+
+        <span class="k">var</span> request = URLRequest(url: url)
         request.httpMethod = <span class="s">"POST"</span>
         request.setValue(<span class="s">"application/json"</span>, forHTTPHeaderField: <span class="s">"Content-Type"</span>)
-        request.setValue(apiKey, forHTTPHeaderField: <span class="s">"x-api-key"</span>)
-        request.setValue(<span class="s">"2023-06-01"</span>, forHTTPHeaderField: <span class="s">"anthropic-version"</span>)
-        request.httpBody = <span class="k">try?</span> JSONSerialization.data(withJSONObject: body)
+        request.httpBody = <span class="k">try</span> JSONEncoder().encode(requestBody)
 
-        URLSession.shared.dataTask(with: request) { data, _, _ <span class="k">in</span>
-            <span class="k">guard let</span> data = data,
-                  <span class="k">let</span> json = <span class="k">try?</span> JSONSerialization.jsonObject(with: data) <span class="k">as?</span> [String: Any],
-                  <span class="k">let</span> content = (json[<span class="s">"content"</span>] <span class="k">as?</span> [[String:Any]])?.first,
-                  <span class="k">let</span> text = content[<span class="s">"text"</span>] <span class="k">as?</span> String
-            <span class="k">else</span> { completion(<span class="k">nil</span>); <span class="k">return</span> }
+        <span class="k">let</span> (data, response) = <span class="k">try await</span> URLSession.shared.data(for: request)
 
-            <span class="k">let</span> result = self.parseResponse(text)
-            DispatchQueue.main.async { completion(result) }
-        }.resume()
-    }
-
-    <span class="k">private func</span> buildPrompt(profile: UserProfile, grant: String) -> String {
-        <span class="k">return</span> <span class="s">"""
-        You are a grant eligibility expert. Analyze this grant and tell me
-        if the organization qualifies. Return ONLY valid JSON, no markdown.
-
-        ORG PROFILE:
-        - Type: \(profile.orgType)
-        - Stage: \(profile.stage)
-        - Industry: \(profile.industry)
-        - Location: \(profile.state)
-        - Employees: \(profile.employeeCount)
-
-        GRANT DESCRIPTION:
-        \(grant)
-
-        Return this exact JSON structure:
-        {
-          "score": 0-100,
-          "verdict": "Likely Eligible|Review Required|Ineligible",
-          "summary": "2-sentence plain English summary",
-          "checks": [
-            {
-              "requirement": "requirement text",
-              "status": "yes|no|maybe",
-              "note": "why"
-            }
-          ]
+        <span class="k">guard let</span> http = response <span class="k">as?</span> HTTPURLResponse <span class="k">else</span> {
+            <span class="k">throw</span> EligibilityServiceError.invalidResponse
         }
-        """</span>
-    }
-
-    <span class="k">private func</span> parseResponse(_ text: String) -> EligibilityResult? {
-        <span class="k">guard let</span> data = text.data(using: .utf8),
-              <span class="k">let</span> json = <span class="k">try?</span> JSONSerialization.jsonObject(with: data) <span class="k">as?</span> [String: Any]
-        <span class="k">else</span> { <span class="k">return nil</span> }
-
-        <span class="k">let</span> score = json[<span class="s">"score"</span>] <span class="k">as?</span> Int ?? 0
-        <span class="k">let</span> verdict = json[<span class="s">"verdict"</span>] <span class="k">as?</span> String ?? <span class="s">"Unknown"</span>
-        <span class="k">let</span> summary = json[<span class="s">"summary"</span>] <span class="k">as?</span> String ?? <span class="s">""</span>
-        <span class="k">let</span> rawChecks = json[<span class="s">"checks"</span>] <span class="k">as?</span> [[String: String]] ?? []
-
-        <span class="k">let</span> checks = rawChecks.map {
-            EligCheck(requirement: $0[<span class="s">"requirement"</span>] ?? <span class="s">""</span>,
-                      status: $0[<span class="s">"status"</span>] ?? <span class="s">"maybe"</span>,
-                      note: $0[<span class="s">"note"</span>] ?? <span class="s">""</span>)
+        <span class="k">guard</span> (200...299).contains(http.statusCode) <span class="k">else</span> {
+            <span class="k">throw</span> EligibilityServiceError.serverError
         }
 
-        <span class="k">return</span> EligibilityResult(score: score, verdict: verdict,
-                                   checks: checks, summary: summary)
+        <span class="k">return try</span> JSONDecoder().decode(EligibilityResult.self, from: data)
     }
 }</div>
   </div>
-
   <div class="card">
     <div class="card-title">How to Connect in Xcode</div>
     <div class="code-block"><span class="c">// In your DiscoverView.swift — add this to each grant card:</span>
@@ -743,107 +716,153 @@
 </div>
 
 <script>
+// ─── ESCAPE UTILITY ───
+function escapeHTML(value) {
+  if (value === null || value === undefined) return '';
+  return String(value).replace(/[&<>"']/g, function (ch) {
+    switch (ch) {
+      case '&': return '&amp;';
+      case '<': return '&lt;';
+      case '>': return '&gt;';
+      case '"': return '&quot;';
+      case "'": return '&#39;';
+      default: return ch;
+    }
+  });
+}
+
 // ─── TAB SWITCHING ───
-function switchTab(id) {
+function switchTab(id, evt) {
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
   document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-  event.target.classList.add('active');
-  document.getElementById('panel-' + id).classList.add('active');
+  if (evt && evt.target) evt.target.classList.add('active');
+  const panel = document.getElementById('panel-' + id);
+  if (panel) panel.classList.add('active');
+}
+
+function isValidEligibilityPayload(data) {
+  const allowedVerdicts = ['Likely Eligible', 'Review Required', 'Ineligible'];
+  const allowedStatuses = ['yes', 'no', 'maybe'];
+
+  if (!data || typeof data !== 'object') return false;
+  if (!Number.isInteger(data.score) || data.score < 0 || data.score > 100) return false;
+  if (!allowedVerdicts.includes(data.verdict)) return false;
+  if (typeof data.summary !== 'string' || data.summary.trim().length === 0) return false;
+  if (!Array.isArray(data.checks) || data.checks.length === 0) return false;
+
+  return data.checks.every(check =>
+    check &&
+    typeof check === 'object' &&
+    typeof check.requirement === 'string' &&
+    check.requirement.trim().length > 0 &&
+    allowedStatuses.includes(check.status) &&
+    typeof check.note === 'string'
+  );
 }
 
 // ─── ELIGIBILITY CHECKER ───
+let eligibilityInFlight = false;
+
 async function runEligibilityCheck() {
+  if (eligibilityInFlight) return;
+
   const btn = document.getElementById('check-btn');
   const resultBox = document.getElementById('eligibility-result');
 
   const orgType = document.getElementById('org-type').value;
   const stage = document.getElementById('org-stage').value;
-  const industry = document.getElementById('org-industry').value;
-  const location = document.getElementById('org-location').value;
+  const industry = document.getElementById('org-industry').value.trim();
+  const location = document.getElementById('org-location').value.trim();
   const employees = document.getElementById('org-employees').value;
-  const grantDesc = document.getElementById('grant-desc').value;
-  const grantName = document.getElementById('grant-name').value;
+  const grantDesc = document.getElementById('grant-desc').value.trim();
+  const grantName = document.getElementById('grant-name').value.trim();
 
-  if (!grantDesc.trim()) { alert('Please paste a grant description.'); return; }
+  if (!grantDesc) { alert('Please paste a grant description.'); return; }
+  if (!industry) { alert('Please enter an industry / focus area.'); return; }
+  if (!location) { alert('Please enter a location.'); return; }
 
+  eligibilityInFlight = true;
   btn.disabled = true;
   btn.innerHTML = '<span class="spinner"></span> Analyzing...';
   resultBox.className = 'result-box visible';
   resultBox.innerHTML = `
-    <div class="loading-row"><span class="spinner"></span> Claude is reading the grant requirements...</div>
+    <div class="loading-row"><span class="spinner"></span> GrantHive is reading the grant requirements...</div>
     <div class="skeleton" style="width:80%"></div>
     <div class="skeleton" style="width:60%"></div>
     <div class="skeleton" style="width:70%"></div>`;
 
-  const prompt = `You are a grant eligibility expert. Analyze this grant and tell me if the organization qualifies. Return ONLY valid JSON, no markdown, no backticks.
-
-ORG PROFILE:
-- Type: ${orgType}
-- Stage: ${stage}
-- Industry: ${industry}
-- Location: ${location}
-- Employees: ${employees}
-
-GRANT: ${grantName}
-DESCRIPTION: ${grantDesc}
-
-Return this exact JSON structure:
-{
-  "score": <0-100 integer>,
-  "verdict": "<Likely Eligible|Review Required|Ineligible>",
-  "summary": "<2 sentence plain English summary of fit>",
-  "checks": [
-    {"requirement": "<requirement text>", "status": "<yes|no|maybe>", "note": "<brief reason>"}
-  ]
-}`;
-
   try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
+    const res = await fetch('/.netlify/functions/check-eligibility', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 1000,
-        messages: [{ role: 'user', content: prompt }]
+        profile: { orgType, stage, industry, location, employees },
+        grantName,
+        grantDescription: grantDesc
       })
     });
 
-    const data = await res.json();
-    const text = data.content?.[0]?.text || '';
-    const clean = text.replace(/```json|```/g, '').trim();
-    const parsed = JSON.parse(clean);
-    renderEligibilityResult(parsed, grantName);
-  } catch (err) {
-    resultBox.innerHTML = `<p style="color:var(--error);font-size:14px;">⚠ Error: ${err.message}. Check console for details.</p>`;
-  }
+    let payload;
+    try {
+      payload = await res.json();
+    } catch {
+      showEligibilityError('GrantHive received an unexpected server response. Please try again.');
+      return;
+    }
 
-  btn.disabled = false;
-  btn.innerHTML = '✦ Check My Eligibility';
+    if (!res.ok) {
+      showEligibilityError(
+        payload && typeof payload.error === 'string'
+          ? payload.error
+          : 'GrantHive could not complete the analysis. Please try again.'
+      );
+      return;
+    }
+
+    if (!isValidEligibilityPayload(payload)) {
+      showEligibilityError('GrantHive received an incomplete analysis. Please try again.');
+      return;
+    }
+
+    renderEligibilityResult(payload, grantName);
+  } catch {
+    showEligibilityError('GrantHive could not connect to the eligibility service. Please try again.');
+  } finally {
+    eligibilityInFlight = false;
+    btn.disabled = false;
+    btn.innerHTML = '✦ Check My Eligibility';
+  }
+}
+
+function showEligibilityError(message) {
+  const resultBox = document.getElementById('eligibility-result');
+  resultBox.className = 'result-box visible';
+  resultBox.innerHTML = `<div class="error-box">⚠ ${escapeHTML(message)}</div>`;
 }
 
 function renderEligibilityResult(data, grantName) {
   const resultBox = document.getElementById('eligibility-result');
-  const pct = data.score + '%';
   const verdictClass = data.verdict === 'Likely Eligible' ? 'eligible' : 'review';
   const verdictDot = data.verdict === 'Likely Eligible' ? '●' : '◐';
 
-  const checksHtml = (data.checks || []).map(c => {
-    const icon = c.status === 'yes' ? '✓' : c.status === 'no' ? '✗' : '~';
+  const checksHtml = data.checks.map(check => {
+    const icon = check.status === 'yes' ? '✓' : check.status === 'no' ? '✗' : '~';
     return `<div class="check-row">
-      <div class="check-icon ${c.status}">${icon}</div>
+      <div class="check-icon ${check.status}">${icon}</div>
       <div>
-        <div style="font-size:14px;color:var(--cream);margin-bottom:2px">${c.requirement}</div>
-        <div style="font-size:12px;color:var(--muted)">${c.note}</div>
+        <div style="font-size:14px;color:var(--cream);margin-bottom:2px">${escapeHTML(check.requirement)}</div>
+        <div style="font-size:12px;color:var(--muted)">${escapeHTML(check.note)}</div>
       </div>
     </div>`;
   }).join('');
 
+  resultBox.className = 'result-box visible';
   resultBox.innerHTML = `
     <div style="margin-bottom:16px">
       <div style="font-family:'Playfair Display',serif;font-size:18px;color:var(--cream);margin-bottom:8px">
-        ${grantName || 'Grant Analysis'}
+        ${escapeHTML(grantName || 'Grant Analysis')}
       </div>
-      <div class="status-badge ${verdictClass}">${verdictDot} ${data.verdict}</div>
+      <div class="status-badge ${verdictClass}">${verdictDot} ${escapeHTML(data.verdict)}</div>
     </div>
 
     <div class="score-ring">
@@ -851,8 +870,8 @@ function renderEligibilityResult(data, grantName) {
         ${data.score}
       </div>
       <div>
-        <div style="font-size:13px;color:var(--muted);margin-bottom:4px;font-family:'DM Mono',monospace;font-size:11px;text-transform:uppercase;letter-spacing:1px">Match Score</div>
-        <div style="font-size:14px;color:var(--cream);line-height:1.5">${data.summary}</div>
+        <div style="font-size:11px;color:var(--muted);margin-bottom:4px;font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:1px">Match Score</div>
+        <div style="font-size:14px;color:var(--cream);line-height:1.5">${escapeHTML(data.summary)}</div>
       </div>
     </div>
 
@@ -884,7 +903,6 @@ async function searchGrants() {
       </div>`).join('')}`;
 
   try {
-    // Grants.gov v2 API
     const params = new URLSearchParams({
       keyword: query || 'business',
       rows: limit,
@@ -898,13 +916,13 @@ async function searchGrants() {
       headers: { 'Content-Type': 'application/json' }
     });
 
-    if (!res.ok) throw new Error(`API returned ${res.status}`);
+    if (!res.ok) throw new Error('Grant search request failed.');
 
     const data = await res.json();
-    const grants = data?.hits?.hits?.map(h => h._source) || [];
+    const grants = data?.hits?.hits?.map(hit => hit._source) || [];
 
     if (!grants.length) {
-      container.innerHTML = `<div class="empty-state"><div class="icon">📭</div><p>No grants found. Try different keywords.</p></div>`;
+      container.innerHTML = '<div class="empty-state"><div class="icon">📭</div><p>No grants found. Try different keywords.</p></div>';
     } else {
       const count = grants.length;
       container.innerHTML = `
@@ -912,67 +930,63 @@ async function searchGrants() {
           <div style="font-family:'Playfair Display',serif;font-size:18px;color:var(--cream)">${count} Grant${count !== 1 ? 's' : ''} Found</div>
           <div class="results-count">via Grants.gov API</div>
         </div>
-        ${grants.map(g => renderGrantCard(g)).join('')}`;
+        ${grants.map(renderGrantCard).join('')}`;
     }
-
-  } catch (err) {
-    // Show simulated data as fallback (CORS or network)
-    showFallbackGrants(query);
+  } catch {
+    showFallbackGrants();
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '⌕ Search Federal Grants';
   }
-
-  btn.disabled = false;
-  btn.innerHTML = '⌕ Search Federal Grants';
 }
 
-function renderGrantCard(g) {
-  const amount = g.awardCeiling
-    ? `$${Number(g.awardCeiling).toLocaleString()}`
+function renderGrantCard(grant) {
+  const amountNumber = Number(grant.awardCeiling);
+  const amount = Number.isFinite(amountNumber) && amountNumber > 0
+    ? `$${amountNumber.toLocaleString()}`
     : 'Amount TBD';
-  const deadline = g.closeDate || 'Open';
-  const agency = g.agencyName || 'Federal Agency';
-  const title = g.opportunityTitle || g.title || 'Federal Grant Opportunity';
-  const desc = g.synopsis || g.description || 'See Grants.gov for details.';
-  const num = g.opportunityNumber || '';
+  const deadline = grant.closeDate || 'Open';
+  const agency = grant.agencyName || 'Federal Agency';
+  const title = grant.opportunityTitle || grant.title || 'Federal Grant Opportunity';
+  const desc = grant.synopsis || grant.description || 'See Grants.gov for details.';
+  const number = grant.opportunityNumber || '';
 
   return `<div class="grant-card">
-    <div class="grant-card-title">${title}</div>
-    <div class="grant-desc">${desc}</div>
+    <div class="grant-card-title">${escapeHTML(title)}</div>
+    <div class="grant-desc">${escapeHTML(desc)}</div>
     <div class="grant-meta">
-      <span class="tag agency">🏛 ${agency}</span>
-      <span class="tag amount">💰 ${amount}</span>
-      <span class="tag deadline">⏱ ${deadline}</span>
-      ${num ? `<span class="tag">${num}</span>` : ''}
+      <span class="tag agency">🏛 ${escapeHTML(agency)}</span>
+      <span class="tag amount">💰 ${escapeHTML(amount)}</span>
+      <span class="tag deadline">⏱ ${escapeHTML(deadline)}</span>
+      ${number ? `<span class="tag">${escapeHTML(number)}</span>` : ''}
     </div>
   </div>`;
 }
 
-function showFallbackGrants(query) {
+function showFallbackGrants() {
   const container = document.getElementById('grants-results');
-  // Real grant data for demo when API is CORS-blocked in browser
   const sample = [
-    { title: 'SBIR Phase I', agency: 'NIH / NSF', amount: '$275,000', deadline: 'Rolling', desc: 'Early-stage R&D funding for small businesses with potential for commercialization in STEM fields.' },
-    { title: 'Small Business Innovation Research', agency: 'SBA', amount: '$1,500,000', deadline: 'Quarterly', desc: 'Three-phase program funding innovation and commercialization at U.S. small businesses.' },
-    { title: 'Rural Business Development Grant', agency: 'USDA', amount: '$500,000', deadline: 'June 30, 2026', desc: 'Supports small and emerging rural businesses with technical assistance and training.' },
-    { title: 'Economic Injury Disaster Loans', agency: 'SBA', amount: '$2,000,000', deadline: 'Ongoing', desc: 'Low-interest loans for businesses impacted by declared disasters.' },
-    { title: 'Community Development Block Grant', agency: 'HUD', amount: '$800,000', deadline: 'Sept 15, 2026', desc: 'Flexible program for community development activities including business support.' }
+    { title: 'SBIR Phase I', agency: 'NIH / NSF', amount: '$275,000', deadline: 'Demonstration only', desc: 'Example of early-stage research and development funding.' },
+    { title: 'Small Business Innovation Research', agency: 'SBA', amount: '$1,500,000', deadline: 'Demonstration only', desc: 'Example of a multi-phase small-business innovation program.' },
+    { title: 'Rural Business Development Grant', agency: 'USDA', amount: '$500,000', deadline: 'Demonstration only', desc: 'Example of assistance for rural small-business development.' }
   ];
 
   container.innerHTML = `
     <div class="tip-box" style="margin-bottom:16px">
-      ℹ️ Live API call was blocked by browser CORS policy (normal in a web preview). In your Swift app, this works perfectly. Showing sample federal grants below.
+      ℹ️ The live Grants.gov request could not be completed. The records below are demonstration data only and are not verified active opportunities.
     </div>
     <div class="results-header">
       <div style="font-family:'Playfair Display',serif;font-size:18px;color:var(--cream)">${sample.length} Sample Grants</div>
-      <div class="results-count">Grants.gov data</div>
+      <div class="results-count">Demonstration data — not verified</div>
     </div>
-    ${sample.map(g => `
+    ${sample.map(grant => `
       <div class="grant-card">
-        <div class="grant-card-title">${g.title}</div>
-        <div class="grant-desc">${g.desc}</div>
+        <div class="grant-card-title">${escapeHTML(grant.title)}</div>
+        <div class="grant-desc">${escapeHTML(grant.desc)}</div>
         <div class="grant-meta">
-          <span class="tag agency">🏛 ${g.agency}</span>
-          <span class="tag amount">💰 ${g.amount}</span>
-          <span class="tag deadline">⏱ ${g.deadline}</span>
+          <span class="tag agency">🏛 ${escapeHTML(grant.agency)}</span>
+          <span class="tag amount">💰 ${escapeHTML(grant.amount)}</span>
+          <span class="tag deadline">⏱ ${escapeHTML(grant.deadline)}</span>
         </div>
       </div>`).join('')}`;
 }

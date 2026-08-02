@@ -1,0 +1,10 @@
+{
+  "frontend_js": true,
+  "frontend_js_output": "",
+  "function_js": true,
+  "function_js_output": "",
+  "no_frontend_anthropic_request": true,
+  "no_swift_api_key": true,
+  "function_reads_env": true,
+  "single_script": true
+}
