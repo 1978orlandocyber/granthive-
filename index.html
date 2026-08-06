@@ -704,12 +704,19 @@
     <div class="card-title">How to Connect in Xcode</div>
     <div class="code-block"><span class="c">// In your DiscoverView.swift — add this to each grant card:</span>
 <span class="k">Button</span>(<span class="s">"Check Eligibility"</span>) {
-    EligibilityService().check(
-        profile: store.userProfile,
-        grantDescription: grant.description
-    ) { result <span class="k">in</span>
-        self.eligibilityResult = result
-        self.showEligibilitySheet = <span class="k">true</span>
+    <span class="k">Task</span> {
+        <span class="k">do</span> {
+            <span class="k">let</span> requestBody = EligibilityRequest(
+                profile: store.userProfile,
+                grantName: grant.title,
+                grantDescription: grant.description
+            )
+            <span class="k">let</span> result = <span class="k">try await</span> EligibilityService().check(requestBody: requestBody)
+            self.eligibilityResult = result
+            self.showEligibilitySheet = <span class="k">true</span>
+        } <span class="k">catch</span> {
+            self.eligibilityErrorMessage = <span class="s">"Couldn't check eligibility. Please try again."</span>
+        }
     }
 }</div>
   </div>
