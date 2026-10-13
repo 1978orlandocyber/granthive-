@@ -493,10 +493,10 @@
 <!-- GRANTS.GOV SEARCH -->
 <div class="panel" id="panel-grants">
   <div class="section-title">Grants.gov Live Search</div>
-  <p class="section-sub">Search real federal grants using the Grants.gov public API. No API key required.</p>
+  <p class="section-sub">Search real federal grants through GrantHive. The browser never calls Grants.gov directly.</p>
 
   <div class="tip-box">
-    💡 This pulls live data from api.grants.gov — the same endpoint you'll embed in your Swift app. Results update in real time.
+    💡 Search requests now go through GrantHive’s Netlify Function. The Swift example below is a separate client sample.
   </div>
 
   <div class="card">
@@ -901,7 +901,7 @@ async function searchGrants() {
   btn.innerHTML = '<span class="spinner"></span> Fetching...';
 
   container.innerHTML = `
-    <div class="loading-row"><span class="spinner"></span> Connecting to Grants.gov API...</div>
+    <div class="loading-row"><span class="spinner"></span> Searching federal grants...</div>
     ${[1,2,3].map(() => `
       <div class="grant-card">
         <div class="skeleton" style="width:85%;height:16px"></div>
@@ -910,24 +910,23 @@ async function searchGrants() {
       </div>`).join('')}`;
 
   try {
-    const params = new URLSearchParams({
-      keyword: query || 'business',
-      rows: limit,
-      oppStatuses: 'forecasted|posted',
-      sortBy: sort,
-      sortDirection: 'desc'
-    });
-    if (eligibility) params.append('eligibilities', eligibility);
-
-    const res = await fetch(`https://api.grants.gov/v2/opportunities/search?${params}`, {
-      headers: { 'Content-Type': 'application/json' }
+    const res = await fetch('/.netlify/functions/search-grants', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        keyword: query || 'business',
+        rows: Number(limit) || 10,
+        sortBy: sort,
+        eligibility
+      })
     });
 
-    if (!res.ok) throw new Error('Grant search request failed.');
+    const data = await res.json().catch(() => null);
+    if (!res.ok || !data || !Array.isArray(data.grants)) {
+      throw new Error(data?.error || 'Grant search request failed.');
+    }
 
-    const data = await res.json();
-    const grants = data?.hits?.hits?.map(hit => hit._source) || [];
-
+    const grants = data.grants;
     if (!grants.length) {
       container.innerHTML = '<div class="empty-state"><div class="icon">📭</div><p>No grants found. Try different keywords.</p></div>';
     } else {
@@ -935,12 +934,12 @@ async function searchGrants() {
       container.innerHTML = `
         <div class="results-header">
           <div style="font-family:'Playfair Display',serif;font-size:18px;color:var(--cream)">${count} Grant${count !== 1 ? 's' : ''} Found</div>
-          <div class="results-count">via Grants.gov API</div>
+          <div class="results-count">via GrantHive search</div>
         </div>
         ${grants.map(renderGrantCard).join('')}`;
     }
-  } catch {
-    showFallbackGrants();
+  } catch (err) {
+    container.innerHTML = `<div class="error-box">⚠ ${escapeHTML(err.message || 'Grant search is temporarily unavailable. Please try again.')}</div>`;
   } finally {
     btn.disabled = false;
     btn.innerHTML = '⌕ Search Federal Grants';
@@ -970,33 +969,6 @@ function renderGrantCard(grant) {
   </div>`;
 }
 
-function showFallbackGrants() {
-  const container = document.getElementById('grants-results');
-  const sample = [
-    { title: 'SBIR Phase I', agency: 'NIH / NSF', amount: '$275,000', deadline: 'Demonstration only', desc: 'Example of early-stage research and development funding.' },
-    { title: 'Small Business Innovation Research', agency: 'SBA', amount: '$1,500,000', deadline: 'Demonstration only', desc: 'Example of a multi-phase small-business innovation program.' },
-    { title: 'Rural Business Development Grant', agency: 'USDA', amount: '$500,000', deadline: 'Demonstration only', desc: 'Example of assistance for rural small-business development.' }
-  ];
-
-  container.innerHTML = `
-    <div class="tip-box" style="margin-bottom:16px">
-      ℹ️ The live Grants.gov request could not be completed. The records below are demonstration data only and are not verified active opportunities.
-    </div>
-    <div class="results-header">
-      <div style="font-family:'Playfair Display',serif;font-size:18px;color:var(--cream)">${sample.length} Sample Grants</div>
-      <div class="results-count">Demonstration data — not verified</div>
-    </div>
-    ${sample.map(grant => `
-      <div class="grant-card">
-        <div class="grant-card-title">${escapeHTML(grant.title)}</div>
-        <div class="grant-desc">${escapeHTML(grant.desc)}</div>
-        <div class="grant-meta">
-          <span class="tag agency">🏛 ${escapeHTML(grant.agency)}</span>
-          <span class="tag amount">💰 ${escapeHTML(grant.amount)}</span>
-          <span class="tag deadline">⏱ ${escapeHTML(grant.deadline)}</span>
-        </div>
-      </div>`).join('')}`;
-}
 </script>
 </body>
 </html>
