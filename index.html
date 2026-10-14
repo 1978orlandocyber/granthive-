@@ -910,6 +910,40 @@ function showEligibilityError(message) {
   resultBox.innerHTML = `<div class="error-box">⚠ ${escapeHTML(message)}</div>`;
 }
 
+
+function buildEligibilityText(data, grantName) {
+  const lines = [
+    grantName || 'Grant Analysis',
+    `Verdict: ${data.verdict}`,
+    `Match score: ${data.score}/100`,
+    '',
+    data.summary,
+    '',
+    'Requirement breakdown'
+  ];
+  data.checks.forEach(check => {
+    const mark = check.status === 'yes' ? 'YES' : check.status === 'no' ? 'NO' : 'MAYBE';
+    lines.push(`- [${mark}] ${check.requirement}`);
+    if (check.note) lines.push(`  ${check.note}`);
+  });
+  return lines.join('\n');
+}
+
+async function copyEligibilityResult() {
+  if (!window.__lastEligibilityText) return;
+  try {
+    await navigator.clipboard.writeText(window.__lastEligibilityText);
+    const btn = document.getElementById('copy-result-btn');
+    if (btn) {
+      const original = btn.textContent;
+      btn.textContent = 'Copied';
+      setTimeout(() => { btn.textContent = original; }, 1500);
+    }
+  } catch {
+    alert('Could not copy. Select the result and copy it manually.');
+  }
+}
+
 function renderEligibilityResult(data, grantName) {
   const resultBox = document.getElementById('eligibility-result');
   const verdictClass = data.verdict === 'Likely Eligible' ? 'eligible' : 'review';
@@ -926,13 +960,17 @@ function renderEligibilityResult(data, grantName) {
     </div>`;
   }).join('');
 
+  window.__lastEligibilityText = buildEligibilityText(data, grantName);
   resultBox.className = 'result-box visible';
   resultBox.innerHTML = `
-    <div style="margin-bottom:16px">
-      <div style="font-family:'Playfair Display',serif;font-size:18px;color:var(--cream);margin-bottom:8px">
-        ${escapeHTML(grantName || 'Grant Analysis')}
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:16px">
+      <div>
+        <div style="font-family:'Playfair Display',serif;font-size:18px;color:var(--cream);margin-bottom:8px">
+          ${escapeHTML(grantName || 'Grant Analysis')}
+        </div>
+        <div class="status-badge ${verdictClass}">${verdictDot} ${escapeHTML(data.verdict)}</div>
       </div>
-      <div class="status-badge ${verdictClass}">${verdictDot} ${escapeHTML(data.verdict)}</div>
+      <button class="btn-ghost" id="copy-result-btn" onclick="copyEligibilityResult()">Copy result</button>
     </div>
 
     <div class="score-ring">
