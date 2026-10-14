@@ -501,6 +501,7 @@
   <p style="margin-top:8px;font-size:12px;color:var(--muted)">Limit: 8 checks per minute on this device.</p>
 
   <div class="result-box" id="eligibility-result"></div>
+  <button class="btn-ghost" style="margin-top:16px" onclick="clearSavedData()">Clear saved data</button>
 </div>
 
 <!-- GRANTS.GOV SEARCH -->
@@ -807,6 +808,36 @@ function friendlyError(status, fallback) {
   return fallback;
 }
 
+
+const RESULT_KEY = 'granthive-last-result';
+
+function saveLastResult(data, grantName) {
+  localStorage.setItem(RESULT_KEY, JSON.stringify({ data, grantName }));
+}
+
+function restoreLastResult() {
+  try {
+    const raw = localStorage.getItem(RESULT_KEY);
+    if (!raw) return;
+    const saved = JSON.parse(raw);
+    if (!saved || !saved.data) return;
+    renderEligibilityResult(saved.data, saved.grantName || '');
+  } catch {}
+}
+
+function clearSavedData() {
+  localStorage.removeItem('granthive-profile');
+  localStorage.removeItem('granthive-last-search');
+  localStorage.removeItem(RESULT_KEY);
+  document.getElementById('eligibility-result').className = 'result-box';
+  document.getElementById('eligibility-result').innerHTML = '';
+  const container = document.getElementById('grants-results');
+  if (container) {
+    container.innerHTML = '<div class="empty-state"><div class="icon">🔍</div><p>Run a search to pull live grants from Grants.gov</p></div>';
+  }
+  alert('Saved profile, search, and result were cleared on this device.');
+}
+
 const PROFILE_KEY = 'granthive-profile';
 
 function saveProfile() {
@@ -992,6 +1023,7 @@ function renderEligibilityResult(data, grantName) {
   }).join('');
 
   window.__lastEligibilityText = buildEligibilityText(data, grantName);
+  saveLastResult(data, grantName);
   resultBox.className = 'result-box visible';
   resultBox.innerHTML = `
     <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:16px">
@@ -1112,6 +1144,7 @@ function renderGrantCard(grant) {
 
 loadProfile();
 restoreLastSearch();
+restoreLastResult();
 </script>
 </body>
 </html>
