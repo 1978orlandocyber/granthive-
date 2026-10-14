@@ -419,13 +419,14 @@
     margin-bottom: 8px;
   }
 </style>
+<script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
 </head>
 <body>
 
 <header>
   <div class="logo">G</div>
   <h1>GrantHive</h1>
-  <span>AI Dev Tools</span>
+  <button class="btn-ghost" id="account-btn" onclick="openAccount()">Sign in</button>
 </header>
 
 <div class="tabs">
@@ -555,6 +556,7 @@
     <p style="margin-top:8px;font-size:12px;color:var(--muted)">Limit: 20 searches per minute on this device.</p>
   </div>
 
+  <input id="grant-filter" type="search" placeholder="Filter these results by title, agency, or number" oninput="filterGrants()" style="display:none;width:100%;margin:12px 0 4px;padding:12px 14px;border-radius:10px;border:1px solid var(--border);background:var(--surface);color:var(--cream);font-size:14px">
   <div id="grants-results">
     <div class="empty-state">
       <div class="icon">🔍</div>
@@ -780,19 +782,39 @@ function restoreLastSearch() {
     if (saved.eligibility) document.getElementById('search-eligibility').value = saved.eligibility;
     if (saved.limit) document.getElementById('search-limit').value = saved.limit;
     if (saved.sort) document.getElementById('search-sort').value = saved.sort;
-    lastGrants = saved.grants;
-    const container = document.getElementById('grants-results');
-    const count = lastGrants.length;
-    container.innerHTML = `
-      <div class="results-header">
-        <div style="font-family:'Playfair Display',serif;font-size:18px;color:var(--cream)">${count} Grant${count !== 1 ? 's' : ''} Found</div>
-        <div class="results-count">saved search</div>
-      </div>
-      ${lastGrants.map((g, i) => { g._index = i; return renderGrantCard(g); }).join('')}`;
+    lastGrants = saved.grants.map((g, i) => ({ ...g, _index: i }));
+    showGrantResults('saved search');
   } catch {}
 }
 
 let lastGrants = [];
+
+
+function showGrantResults(label) {
+  const filter = document.getElementById('grant-filter');
+  const container = document.getElementById('grants-results');
+  const term = (filter.value || '').trim().toLowerCase();
+  const shown = lastGrants.filter(g => {
+    if (!term) return true;
+    const hay = [g.opportunityTitle, g.agencyName, g.synopsis, g.opportunityNumber].join(' ').toLowerCase();
+    return hay.includes(term);
+  });
+  filter.style.display = lastGrants.length ? 'block' : 'none';
+  if (!shown.length) {
+    container.innerHTML = '<div class="empty-state"><div class="icon">🔎</div><p>No grants match that filter.</p></div>';
+    return;
+  }
+  container.innerHTML = `
+    <div class="results-header">
+      <div style="font-family:'Playfair Display',serif;font-size:18px;color:var(--cream)">${shown.length} Grant${shown.length !== 1 ? 's' : ''} Found</div>
+      <div class="results-count">${escapeHTML(label)}</div>
+    </div>
+    ${shown.map(g => renderGrantCard(g)).join('')}`;
+}
+
+function filterGrants() {
+  showGrantResults(document.getElementById('grant-filter').value.trim() ? 'filtered results' : 'via GrantHive search');
+}
 
 function useGrant(index) {
   const grant = lastGrants[index];
@@ -812,7 +834,7 @@ function friendlyError(status, fallback) {
 const RESULT_KEY = 'granthive-last-result';
 
 function saveLastResult(data, grantName) {
-  localStorage.setItem(RESULT_KEY, JSON.stringify({ data, grantName }));
+  localStorage.setItem(RESULT_KEY, JSON.stringify({ data, grantName, savedAt: new Date().toISOString() }));
 }
 
 function restoreLastResult() {
@@ -821,7 +843,7 @@ function restoreLastResult() {
     if (!raw) return;
     const saved = JSON.parse(raw);
     if (!saved || !saved.data) return;
-    renderEligibilityResult(saved.data, saved.grantName || '');
+    renderEligibilityResult(saved.data, saved.grantName || '', saved.savedAt);
   } catch {}
 }
 
@@ -833,12 +855,62 @@ function clearSavedData() {
   document.getElementById('eligibility-result').innerHTML = '';
   const container = document.getElementById('grants-results');
   if (container) {
-    container.innerHTML = '<div class="empty-state"><div class="icon">🔍</div><p>Run a search to pull live grants from Grants.gov</p></div>';
+    document.getElementById('grant-filter').value = ''; document.getElementById('grant-filter').style.display = 'none'; container.innerHTML = '<div class="empty-state"><div class="icon">🔍</div><p>Run a search to pull live grants from Grants.gov</p></div>';
   }
   alert('Saved profile, search, and result were cleared on this device.');
 }
 
 const PROFILE_KEY = 'granthive-profile';
+
+
+function openAccount() {
+  if (!window.netlifyIdentity) {
+    alert('Accounts are not enabled on this site yet.');
+    return;
+  }
+  const user = window.netlifyIdentity.currentUser();
+  if (user) window.netlifyIdentity.logout();
+  else window.netlifyIdentity.open();
+}
+
+function setAccountLabel(user) {
+  const btn = document.getElementById('account-btn');
+  if (!btn) return;
+  btn.textContent = user ? 'Sign out' : 'Sign in';
+}
+
+async function syncProfileToAccount() {
+  if (!window.netlifyIdentity || !window.netlifyIdentity.currentUser()) return;
+  const token = window.netlifyIdentity.currentUser().token?.access_token;
+  if (!token) return;
+  await fetch('/.netlify/functions/profile', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
+    body: JSON.stringify({
+      orgType: document.getElementById('org-type').value,
+      stage: document.getElementById('org-stage').value,
+      industry: document.getElementById('org-industry').value,
+      location: document.getElementById('org-location').value,
+      employees: document.getElementById('org-employees').value
+    })
+  });
+}
+
+async function loadProfileFromAccount() {
+  if (!window.netlifyIdentity || !window.netlifyIdentity.currentUser()) return;
+  const token = window.netlifyIdentity.currentUser().token?.access_token;
+  if (!token) return;
+  const res = await fetch('/.netlify/functions/profile', { headers: { Authorization: 'Bearer ' + token } });
+  if (!res.ok) return;
+  const data = await res.json();
+  const profile = data.profile;
+  if (!profile) return;
+  if (profile.orgType) document.getElementById('org-type').value = profile.orgType;
+  if (profile.stage) document.getElementById('org-stage').value = profile.stage;
+  if (profile.industry) document.getElementById('org-industry').value = profile.industry;
+  if (profile.location) document.getElementById('org-location').value = profile.location;
+  if (profile.employees) document.getElementById('org-employees').value = profile.employees;
+}
 
 function saveProfile() {
   const profile = {
@@ -952,7 +1024,8 @@ async function runEligibilityCheck() {
     }
 
     saveProfile();
-    renderEligibilityResult(payload, grantName);
+    syncProfileToAccount();
+    renderEligibilityResult(payload, grantName, new Date().toISOString());
     const note = document.createElement('div');
     note.className = 'saved-note';
     note.textContent = 'Organization profile saved on this device.';
@@ -988,6 +1061,7 @@ function buildEligibilityText(data, grantName) {
     lines.push(`- [${mark}] ${check.requirement}`);
     if (check.note) lines.push(`  ${check.note}`);
   });
+  lines.push('', 'Screening aid only. Not a funding decision.');
   return lines.join('\n');
 }
 
@@ -1006,7 +1080,7 @@ async function copyEligibilityResult() {
   }
 }
 
-function renderEligibilityResult(data, grantName) {
+function renderEligibilityResult(data, grantName, savedAt) {
   const resultBox = document.getElementById('eligibility-result');
   const verdictClass = data.verdict === 'Likely Eligible' ? 'eligible' : 'review';
   const verdictDot = data.verdict === 'Likely Eligible' ? '●' : '◐';
@@ -1049,7 +1123,8 @@ function renderEligibilityResult(data, grantName) {
     <div style="font-family:'DM Mono',monospace;font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--gold);margin-bottom:10px">
       Requirement Breakdown
     </div>
-    ${checksHtml}`;
+    ${checksHtml}
+    <p style="margin-top:14px;font-size:12px;color:var(--muted)">Screening aid only. Not a funding decision.${savedAt ? ' Saved ' + new Date(savedAt).toLocaleString() + '.' : ''}</p>`;
 }
 
 // ─── GRANTS.GOV SEARCH ───
@@ -1093,19 +1168,15 @@ async function searchGrants() {
       throw new Error(data?.error || 'Grant search request failed.');
     }
 
-    const grants = data.grants;
+    const grants = data.grants.map((g, i) => ({ ...g, _index: i }));
     lastGrants = grants;
     saveLastSearch(query || 'business', eligibility, limit, sort, grants);
+    document.getElementById('grant-filter').value = '';
     if (!grants.length) {
+      document.getElementById('grant-filter').style.display = 'none';
       container.innerHTML = '<div class="empty-state"><div class="icon">📭</div><p>No grants found. Try different keywords.</p></div>';
     } else {
-      const count = grants.length;
-      container.innerHTML = `
-        <div class="results-header">
-          <div style="font-family:'Playfair Display',serif;font-size:18px;color:var(--cream)">${count} Grant${count !== 1 ? 's' : ''} Found</div>
-          <div class="results-count">via GrantHive search</div>
-        </div>
-        ${grants.map((g, i) => { g._index = i; return renderGrantCard(g); }).join('')}`;
+      showGrantResults('via GrantHive search');
     }
   } catch (err) {
     container.innerHTML = `<div class="error-box">⚠ ${escapeHTML(err.message || 'Grant search is temporarily unavailable. Please try again.')}</div>`;
@@ -1143,6 +1214,11 @@ function renderGrantCard(grant) {
 }
 
 loadProfile();
+  if (window.netlifyIdentity) {
+    window.netlifyIdentity.on("init", user => { setAccountLabel(user); if (user) loadProfileFromAccount(); });
+    window.netlifyIdentity.on("login", user => { setAccountLabel(user); loadProfileFromAccount(); window.netlifyIdentity.close(); });
+    window.netlifyIdentity.on("logout", () => setAccountLabel(null));
+  }
 restoreLastSearch();
 restoreLastResult();
 </script>
