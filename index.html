@@ -403,6 +403,11 @@
     border-radius: 8px;
     padding: 14px 16px;
   }
+  .saved-note {
+    margin-top: 10px;
+    font-size: 13px;
+    color: var(--success);
+  }
 
   /* Pulse loader for skeleton */
   @keyframes pulse { 0%,100%{opacity:.3} 50%{opacity:.7} }
@@ -766,6 +771,11 @@ function useGrant(index) {
   document.getElementById('grant-name').scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
 
+function friendlyError(status, fallback) {
+  if (status === 429) return 'Too many requests. Wait about a minute, then try again.';
+  return fallback;
+}
+
 const PROFILE_KEY = 'granthive-profile';
 
 function saveProfile() {
@@ -864,9 +874,12 @@ async function runEligibilityCheck() {
 
     if (!res.ok) {
       showEligibilityError(
-        payload && typeof payload.error === 'string'
-          ? payload.error
-          : 'GrantHive could not complete the analysis. Please try again.'
+        friendlyError(
+          res.status,
+          payload && typeof payload.error === 'string'
+            ? payload.error
+            : 'GrantHive could not complete the analysis. Please try again.'
+        )
       );
       return;
     }
@@ -878,6 +891,10 @@ async function runEligibilityCheck() {
 
     saveProfile();
     renderEligibilityResult(payload, grantName);
+    const note = document.createElement('div');
+    note.className = 'saved-note';
+    note.textContent = 'Organization profile saved on this device.';
+    resultBox.prepend(note);
   } catch {
     showEligibilityError('GrantHive could not connect to the eligibility service. Please try again.');
   } finally {
@@ -968,6 +985,9 @@ async function searchGrants() {
     });
 
     const data = await res.json().catch(() => null);
+    if (res.status === 429) {
+      throw new Error('Too many searches. Wait about a minute, then try again.');
+    }
     if (!res.ok || !data || !Array.isArray(data.grants)) {
       throw new Error(data?.error || 'Grant search request failed.');
     }
