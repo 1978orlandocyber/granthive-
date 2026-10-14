@@ -749,9 +749,47 @@ function escapeHTML(value) {
 function switchTab(id, evt) {
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
   document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-  if (evt && evt.target) evt.target.classList.add('active');
+  const tab = evt && evt.target ? evt.target : document.querySelector('.tab[onclick*="' + id + '"]');
+  if (tab) tab.classList.add('active');
   const panel = document.getElementById('panel-' + id);
   if (panel) panel.classList.add('active');
+}
+
+let lastGrants = [];
+
+function useGrant(index) {
+  const grant = lastGrants[index];
+  if (!grant) return;
+  document.getElementById('grant-name').value = (grant.opportunityTitle || '').slice(0, 200);
+  document.getElementById('grant-desc').value = (grant.synopsis || 'See Grants.gov for details.').slice(0, 8000);
+  switchTab('eligibility');
+  document.getElementById('grant-name').scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+const PROFILE_KEY = 'granthive-profile';
+
+function saveProfile() {
+  const profile = {
+    orgType: document.getElementById('org-type').value,
+    stage: document.getElementById('org-stage').value,
+    industry: document.getElementById('org-industry').value,
+    location: document.getElementById('org-location').value,
+    employees: document.getElementById('org-employees').value
+  };
+  localStorage.setItem(PROFILE_KEY, JSON.stringify(profile));
+}
+
+function loadProfile() {
+  try {
+    const raw = localStorage.getItem(PROFILE_KEY);
+    if (!raw) return;
+    const profile = JSON.parse(raw);
+    if (profile.orgType) document.getElementById('org-type').value = profile.orgType;
+    if (profile.stage) document.getElementById('org-stage').value = profile.stage;
+    if (profile.industry) document.getElementById('org-industry').value = profile.industry;
+    if (profile.location) document.getElementById('org-location').value = profile.location;
+    if (profile.employees) document.getElementById('org-employees').value = profile.employees;
+  } catch {}
 }
 
 function isValidEligibilityPayload(data) {
@@ -838,6 +876,7 @@ async function runEligibilityCheck() {
       return;
     }
 
+    saveProfile();
     renderEligibilityResult(payload, grantName);
   } catch {
     showEligibilityError('GrantHive could not connect to the eligibility service. Please try again.');
@@ -934,6 +973,7 @@ async function searchGrants() {
     }
 
     const grants = data.grants;
+    lastGrants = grants;
     if (!grants.length) {
       container.innerHTML = '<div class="empty-state"><div class="icon">📭</div><p>No grants found. Try different keywords.</p></div>';
     } else {
@@ -943,7 +983,7 @@ async function searchGrants() {
           <div style="font-family:'Playfair Display',serif;font-size:18px;color:var(--cream)">${count} Grant${count !== 1 ? 's' : ''} Found</div>
           <div class="results-count">via GrantHive search</div>
         </div>
-        ${grants.map(renderGrantCard).join('')}`;
+        ${grants.map((g, i) => { g._index = i; return renderGrantCard(g); }).join('')}`;
     }
   } catch (err) {
     container.innerHTML = `<div class="error-box">⚠ ${escapeHTML(err.message || 'Grant search is temporarily unavailable. Please try again.')}</div>`;
@@ -973,9 +1013,14 @@ function renderGrantCard(grant) {
       <span class="tag deadline">⏱ ${escapeHTML(deadline)}</span>
       ${number ? `<span class="tag">${escapeHTML(number)}</span>` : ''}
     </div>
+    <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
+      <button class="btn-ghost" onclick="useGrant(${grant._index})">Check eligibility</button>
+      ${grant.opportunityId ? `<a class="btn-ghost" style="text-decoration:none" href="https://www.grants.gov/search-results-detail/${encodeURIComponent(grant.opportunityId)}" target="_blank" rel="noopener">View on Grants.gov</a>` : ''}
+    </div>
   </div>`;
 }
 
+loadProfile();
 </script>
 </body>
 </html>
