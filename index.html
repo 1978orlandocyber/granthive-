@@ -261,25 +261,50 @@
 
   .score-ring {
     display: flex;
+    flex-direction: column;
     align-items: center;
-    gap: 16px;
-    padding: 16px;
+    gap: 14px;
+    padding: 20px 16px 18px;
     background: rgba(201,168,76,0.05);
-    border-radius: 8px;
+    border-radius: 12px;
     margin-bottom: 16px;
     border: 1px solid var(--border);
+    text-align: center;
   }
 
   .score-circle {
-    width: 64px; height: 64px;
+    width: 132px; height: 132px;
     border-radius: 50%;
     background: conic-gradient(var(--gold) 0%, rgba(201,168,76,0.15) 0%);
     display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .score-circle span {
+    width: 96px; height: 96px;
+    border-radius: 50%;
+    background: var(--surface);
+    display: flex; align-items: center; justify-content: center;
+    flex-direction: column;
     font-family: 'Playfair Display', serif;
-    font-size: 20px;
+    font-size: 36px;
     font-weight: 700;
     color: var(--gold);
-    flex-shrink: 0;
+    line-height: 1;
+  }
+
+  .score-circle small {
+    display: block;
+    margin-top: 2px;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.5px;
+    color: var(--muted);
+    font-weight: 500;
+  }
+
+  .score-copy {
+    width: 100%;
   }
 
   /* Grants.gov panel */
@@ -1111,12 +1136,12 @@ function renderEligibilityResult(data, grantName, savedAt) {
     </div>
 
     <div class="score-ring">
-      <div class="score-circle" style="background: conic-gradient(var(--gold) ${data.score}%, rgba(201,168,76,0.1) 0%)">
-        ${data.score}
+      <div class="score-circle" style="background: conic-gradient(var(--gold) ${data.score}%, rgba(201,168,76,0.15) 0%)">
+        <span>${data.score}<small>/100</small></span>
       </div>
-      <div>
-        <div style="font-size:11px;color:var(--muted);margin-bottom:4px;font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:1px">Match Score</div>
-        <div style="font-size:14px;color:var(--cream);line-height:1.5">${escapeHTML(data.summary)}</div>
+      <div class="score-copy">
+        <div style="font-size:11px;color:var(--muted);margin-bottom:6px;font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:1px">Match Score</div>
+        <div style="font-size:15px;color:var(--cream);line-height:1.55">${escapeHTML(data.summary)}</div>
       </div>
     </div>
 
