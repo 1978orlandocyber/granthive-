@@ -102,7 +102,8 @@ async function handler(event) {
       synopsis: String(g.synopsis || g.description || g.title || 'See Grants.gov for details.').slice(0, 800),
       awardCeiling: Number.isFinite(Number(g.awardCeiling)) ? Number(g.awardCeiling) : null,
       closeDate: g.closeDate ? String(g.closeDate).slice(0, 40) : null,
-      opportunityNumber: g.number || g.opportunityNumber ? String(g.number || g.opportunityNumber).slice(0, 80) : ''
+      opportunityNumber: g.number || g.opportunityNumber ? String(g.number || g.opportunityNumber).slice(0, 80) : '',
+      opportunityId: g.id ? String(g.id).slice(0, 40) : ''
     }));
 
     return jsonResponse(200, {
