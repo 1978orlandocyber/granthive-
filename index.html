@@ -498,6 +498,7 @@
   <button class="btn" id="check-btn" onclick="runEligibilityCheck()">
     ✦ Check My Eligibility
   </button>
+  <p style="margin-top:8px;font-size:12px;color:var(--muted)">Limit: 8 checks per minute on this device.</p>
 
   <div class="result-box" id="eligibility-result"></div>
 </div>
@@ -550,6 +551,7 @@
     <button class="btn" onclick="searchGrants()" id="search-btn">
       ⌕ Search Federal Grants
     </button>
+    <p style="margin-top:8px;font-size:12px;color:var(--muted)">Limit: 20 searches per minute on this device.</p>
   </div>
 
   <div id="grants-results">
@@ -758,6 +760,35 @@ function switchTab(id, evt) {
   if (tab) tab.classList.add('active');
   const panel = document.getElementById('panel-' + id);
   if (panel) panel.classList.add('active');
+}
+
+
+const SEARCH_KEY = 'granthive-last-search';
+
+function saveLastSearch(query, eligibility, limit, sort, grants) {
+  localStorage.setItem(SEARCH_KEY, JSON.stringify({ query, eligibility, limit, sort, grants }));
+}
+
+function restoreLastSearch() {
+  try {
+    const raw = localStorage.getItem(SEARCH_KEY);
+    if (!raw) return;
+    const saved = JSON.parse(raw);
+    if (!saved || !Array.isArray(saved.grants) || !saved.grants.length) return;
+    if (saved.query) document.getElementById('search-query').value = saved.query;
+    if (saved.eligibility) document.getElementById('search-eligibility').value = saved.eligibility;
+    if (saved.limit) document.getElementById('search-limit').value = saved.limit;
+    if (saved.sort) document.getElementById('search-sort').value = saved.sort;
+    lastGrants = saved.grants;
+    const container = document.getElementById('grants-results');
+    const count = lastGrants.length;
+    container.innerHTML = `
+      <div class="results-header">
+        <div style="font-family:'Playfair Display',serif;font-size:18px;color:var(--cream)">${count} Grant${count !== 1 ? 's' : ''} Found</div>
+        <div class="results-count">saved search</div>
+      </div>
+      ${lastGrants.map((g, i) => { g._index = i; return renderGrantCard(g); }).join('')}`;
+  } catch {}
 }
 
 let lastGrants = [];
@@ -1032,6 +1063,7 @@ async function searchGrants() {
 
     const grants = data.grants;
     lastGrants = grants;
+    saveLastSearch(query || 'business', eligibility, limit, sort, grants);
     if (!grants.length) {
       container.innerHTML = '<div class="empty-state"><div class="icon">📭</div><p>No grants found. Try different keywords.</p></div>';
     } else {
@@ -1079,6 +1111,7 @@ function renderGrantCard(grant) {
 }
 
 loadProfile();
+restoreLastSearch();
 </script>
 </body>
 </html>
