@@ -489,6 +489,34 @@
   .netlify-identity-widget input[type="text"] {
     padding-right: 36px;
   }
+
+  .calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 12px;
+    margin-top: 16px;
+  }
+  .month-card {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px;
+  }
+  .month-card.current { border-color: var(--gold); }
+  .month-name { font-size: 16px; font-weight: 700; color: var(--gold); }
+  .month-focus { margin: 6px 0 10px; font-size: 14px; }
+  .month-note { font-size: 13px; color: var(--muted); line-height: 1.4; }
+
+  .start-here {
+    margin: 8px 32px 0;
+    font-size: 14px;
+    color: var(--muted);
+  }
+  .tabs { flex-wrap: wrap; }
+  .tab { font-size: 14px; }
+  @media (max-width: 640px) {
+    .start-here { margin: 8px 16px 0; }
+  }
 </style>
 <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
 </head>
@@ -505,16 +533,18 @@
   <button type="submit">Search</button>
 </form>
 
+<p class="start-here">Start with Eligibility, or search Federal or Florida grants. Calendar is only a planning guide.</p>
 <div class="tabs">
-  <div class="tab active" onclick="switchTab('eligibility', event)">Eligibility Checker</div>
-  <div class="tab" onclick="switchTab('grants', event)">Grants.gov Search</div>
+  <div class="tab active" onclick="switchTab('eligibility', event)">Eligibility</div>
+  <div class="tab" onclick="switchTab('grants', event)">Federal</div>
+  <div class="tab" onclick="switchTab('florida', event)">Florida</div>
+  <div class="tab" onclick="switchTab('calendar', event)">Calendar</div>
   <div class="tab" onclick="switchTab('saved', event)">Saved</div>
-  <div class="tab" onclick="switchTab('code', event)">Swift Integration Code</div>
 </div>
 
 <!-- ELIGIBILITY CHECKER -->
 <div class="panel active" id="panel-eligibility">
-  <div class="section-title">AI Eligibility Checker</div>
+  <div class="section-title">Eligibility</div>
   <p class="section-sub">Enter your organization profile and a grant description — Claude will score your eligibility and flag each requirement.</p>
 
   <div class="tip-box">
@@ -609,6 +639,8 @@
         </select>
       </div>
     </div>
+    <button class="btn-ghost" type="button" onclick="document.getElementById('more-filters').hidden=!document.getElementById('more-filters').hidden" style="margin:8px 0">More filters</button>
+    <div id="more-filters" hidden>
     <div class="row">
       <div>
         <label>Funding Type</label>
@@ -667,6 +699,7 @@
         </select>
       </div>
     </div>
+    </div>
     <button class="btn" onclick="searchGrants()" id="search-btn">
       ⌕ Search Federal Grants
     </button>
@@ -682,6 +715,115 @@
   </div>
 </div>
 
+
+
+<!-- FLORIDA -->
+<div class="panel" id="panel-florida">
+  <div class="section-title">Florida Grants</div>
+  <p class="section-sub">State and Florida foundation grants for nonprofits and for-profit businesses. Not federal.</p>
+  <div class="tip-box">Confirm the deadline and rules on the official page before you apply. This is a starting list, not a funding decision.</div>
+  <div class="row">
+    <div>
+      <label>Who is this for</label>
+      <select id="florida-audience" onchange="loadFloridaGrants()">
+        <option value="">All</option>
+        <option value="nonprofit">Nonprofit</option>
+        <option value="for-profit">For-profit business</option>
+      </select>
+    </div>
+    <div>
+      <label>Search</label>
+      <input id="florida-filter" type="search" placeholder="Title, agency, or category" oninput="renderFlorida()">
+    </div>
+  </div>
+  <div id="florida-results">
+    <div class="empty-state"><div class="icon">🌴</div><p>Loading Florida grants...</p></div>
+  </div>
+</div>
+
+
+<!-- CALENDAR -->
+<div class="panel" id="panel-calendar">
+  <div class="section-title">Grant Calendar</div>
+  <p class="section-sub">A planning guide for the year. It covers federal, state, city, county, foundation, and corporate funding. Not only Florida.</p>
+  <div class="tip-box">These months are a guide, not a rule. Federal and state grants open all year. Use the calendar to decide where to look, then open the matching list.</div>
+  <div class="calendar-grid">
+    <div class="month-card" data-month="1">
+      <div class="month-name">January</div>
+      <div class="month-focus">Pledges</div>
+      <div class="month-note">Confirm last year’s pledges and start the new year ask. Relationship work, not a new grant search.</div>
+      <span class="tag">Foundation · Major gifts</span>
+    </div>
+    <div class="month-card" data-month="2">
+      <div class="month-name">February</div>
+      <div class="month-focus">Bank grants</div>
+      <div class="month-note">Bank community grants and CRA programs. Good month to open conversations with local bank foundations.</div>
+      <span class="tag">Corporate · Bank</span>
+    </div>
+    <div class="month-card" data-month="3">
+      <div class="month-name">March</div>
+      <div class="month-focus">Foundation grants</div>
+      <div class="month-note">Spring foundation cycles open. Research fit before you write.</div>
+      <span class="tag">Foundation</span>
+    </div>
+    <div class="month-card" data-month="4">
+      <div class="month-name">April</div>
+      <div class="month-focus">Foundation grants</div>
+      <div class="month-note">Submit spring foundation applications and follow up on March research.</div>
+      <span class="tag">Foundation</span>
+    </div>
+    <div class="month-card" data-month="5">
+      <div class="month-name">May</div>
+      <div class="month-focus">Federal grants</div>
+      <div class="month-note">Federal opportunities are open all year. Use May to run a focused Grants.gov search and save the ones that fit.</div>
+      <span class="tag">Federal</span>
+      <div style="margin-top:10px"><button class="btn-ghost" onclick="switchTab('grants')">Open federal search</button></div>
+    </div>
+    <div class="month-card" data-month="6">
+      <div class="month-name">June</div>
+      <div class="month-focus">State grants</div>
+      <div class="month-note">Florida fiscal year starts July 1. Many state programs, including arts, cluster around June and July.</div>
+      <span class="tag">State</span>
+      <div style="margin-top:10px"><button class="btn-ghost" onclick="switchTab('florida')">Open Florida list</button></div>
+    </div>
+    <div class="month-card" data-month="7">
+      <div class="month-name">July</div>
+      <div class="month-focus">Board meetings and budgets</div>
+      <div class="month-note">Boards approve budgets. Align your ask with what was just funded for the year.</div>
+      <span class="tag">Foundation · Board</span>
+    </div>
+    <div class="month-card" data-month="8">
+      <div class="month-name">August</div>
+      <div class="month-focus">City economic planner</div>
+      <div class="month-note">Talk to city economic development and planning staff about local programs and upcoming cycles.</div>
+      <span class="tag">City</span>
+    </div>
+    <div class="month-card" data-month="9">
+      <div class="month-name">September</div>
+      <div class="month-focus">Local community grants</div>
+      <div class="month-note">City, county, and community foundation grants. Local fit matters more than size.</div>
+      <span class="tag">City · County · Foundation</span>
+    </div>
+    <div class="month-card" data-month="10">
+      <div class="month-name">October</div>
+      <div class="month-focus">Bank sponsorship</div>
+      <div class="month-note">Bank sponsorships and community giving for the year-end. Ask early enough for their approval cycle.</div>
+      <span class="tag">Corporate · Bank</span>
+    </div>
+    <div class="month-card" data-month="11">
+      <div class="month-name">November</div>
+      <div class="month-focus">Giving Tuesday</div>
+      <div class="month-note">Giving Tuesday is the first Tuesday after Thanksgiving. Pair it with individual giving, not a new grant proposal.</div>
+      <span class="tag">Individual giving</span>
+    </div>
+    <div class="month-card" data-month="12">
+      <div class="month-name">December</div>
+      <div class="month-focus">Annual gifts and major donors</div>
+      <div class="month-note">Year-end gifts and major donor asks. Stewardship month more than a grant month.</div>
+      <span class="tag">Major gifts · Individual</span>
+    </div>
+  </div>
+</div>
 
 <!-- SAVED GRANTS -->
 <div class="panel" id="panel-saved">
@@ -895,6 +1037,82 @@ function siteSearch(event) {
   searchGrants();
 }
 
+
+let floridaGrants = [];
+
+async function loadFloridaGrants() {
+  const box = document.getElementById('florida-results');
+  if (!box) return;
+  if (!floridaGrants.length) {
+    box.innerHTML = '<div class="loading-row"><span class="spinner"></span> Loading Florida grants...</div>';
+    const res = await fetch('/.netlify/functions/florida-grants');
+    const data = await res.json().catch(() => ({}));
+    floridaGrants = Array.isArray(data.grants) ? data.grants : [];
+  }
+  renderFlorida();
+}
+
+function renderFlorida() {
+  const box = document.getElementById('florida-results');
+  const audience = document.getElementById('florida-audience').value;
+  const term = (document.getElementById('florida-filter').value || '').trim().toLowerCase();
+  const shown = floridaGrants.filter(g => {
+    if (audience && g.audience !== audience && g.audience !== 'both') return false;
+    if (!term) return true;
+    return [g.title, g.agency, g.category, g.summary].join(' ').toLowerCase().includes(term);
+  });
+  if (!shown.length) {
+    box.innerHTML = '<div class="empty-state"><div class="icon">🔎</div><p>No Florida grants match that filter.</p></div>';
+    return;
+  }
+  box.innerHTML = shown.map(g => `
+    <div class="grant-card">
+      <div class="grant-card-title">${escapeHTML(g.title)}</div>
+      <div class="grant-desc">${escapeHTML(g.summary)}</div>
+      <div class="grant-meta">
+        <span class="tag agency">🏛 ${escapeHTML(g.agency)}</span>
+        <span class="tag amount">💰 ${escapeHTML(g.amount)}</span>
+        <span class="tag deadline">⏱ ${escapeHTML(g.closeDate)}</span>
+        <span class="tag">${g.audience === 'for-profit' ? 'For-profit' : g.audience === 'nonprofit' ? 'Nonprofit' : 'Both'}</span>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
+        <button class="btn-ghost" onclick="useFloridaGrant('${g.id}')">Check eligibility</button>
+        <button class="btn-ghost" onclick="saveFloridaGrant('${g.id}')">Save</button>
+        <a class="btn-ghost" style="text-decoration:none" href="${g.url}" target="_blank" rel="noopener">Official page</a>
+      </div>
+    </div>`).join('');
+}
+
+function useFloridaGrant(id) {
+  const grant = floridaGrants.find(g => g.id === id);
+  if (!grant) return;
+  document.getElementById('grant-name').value = grant.title;
+  document.getElementById('grant-desc').value = grant.summary + '\n\nAgency: ' + grant.agency + '\nAudience: ' + grant.audience;
+  switchTab('eligibility');
+}
+
+function saveFloridaGrant(id) {
+  const grant = floridaGrants.find(g => g.id === id);
+  if (!grant) return;
+  saveGrant({
+    id: grant.id,
+    title: grant.title,
+    agency: grant.agency,
+    number: 'Florida',
+    closeDate: grant.closeDate,
+    amount: grant.amount,
+    source: 'florida'
+  });
+}
+
+
+function markCurrentMonth() {
+  const month = String(new Date().getMonth() + 1);
+  document.querySelectorAll('.month-card').forEach(card => {
+    card.classList.toggle('current', card.dataset.month === month);
+  });
+}
+
 function switchTab(id, evt) {
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
   document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
@@ -903,6 +1121,8 @@ function switchTab(id, evt) {
   const panel = document.getElementById('panel-' + id);
   if (panel) panel.classList.add('active');
   if (id === 'saved') loadSavedGrants();
+  if (id === 'florida') loadFloridaGrants();
+  if (id === 'calendar') markCurrentMonth();
 }
 
 
