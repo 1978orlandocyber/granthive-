@@ -36,6 +36,34 @@
     line-height: 1.6;
   }
 
+
+  .site-search {
+    display: flex;
+    gap: 8px;
+    padding: 12px 32px 0;
+  }
+  .site-search input {
+    flex: 1;
+    padding: 12px 14px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--cream);
+    font-size: 15px;
+  }
+  .site-search button {
+    padding: 12px 16px;
+    border-radius: 10px;
+    border: none;
+    background: var(--gold);
+    color: var(--ink);
+    font-weight: 700;
+    cursor: pointer;
+  }
+  @media (max-width: 640px) {
+    .site-search { padding: 12px 16px 0; }
+  }
+
   header {
     padding: 28px 32px 20px;
     border-bottom: 1px solid var(--border);
@@ -443,6 +471,24 @@
     height: 14px;
     margin-bottom: 8px;
   }
+
+  .pw-toggle {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: #9a9a9a;
+    cursor: pointer;
+    font-size: 16px;
+    line-height: 1;
+    padding: 4px;
+  }
+  .netlify-identity-widget input[type="password"],
+  .netlify-identity-widget input[type="text"] {
+    padding-right: 36px;
+  }
 </style>
 <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
 </head>
@@ -454,9 +500,15 @@
   <button class="btn-ghost" id="account-btn" onclick="openAccount()">Sign in</button>
 </header>
 
+<form class="site-search" onsubmit="siteSearch(event)">
+  <input id="site-search" type="search" placeholder="Search federal grants" autocomplete="off">
+  <button type="submit">Search</button>
+</form>
+
 <div class="tabs">
   <div class="tab active" onclick="switchTab('eligibility', event)">Eligibility Checker</div>
   <div class="tab" onclick="switchTab('grants', event)">Grants.gov Search</div>
+  <div class="tab" onclick="switchTab('saved', event)">Saved</div>
   <div class="tab" onclick="switchTab('code', event)">Swift Integration Code</div>
 </div>
 
@@ -559,6 +611,46 @@
     </div>
     <div class="row">
       <div>
+        <label>Funding Type</label>
+        <select id="search-funding-type">
+          <option value="">Any</option>
+          <option value="G">Grant</option>
+          <option value="CA">Cooperative Agreement</option>
+          <option value="O">Other</option>
+        </select>
+      </div>
+      <div>
+        <label>Grant Type</label>
+        <select id="search-grant-type">
+          <option value="">Any</option>
+          <option value="HL">Health</option>
+          <option value="ED">Education</option>
+          <option value="AR">Arts</option>
+          <option value="AG">Agriculture</option>
+          <option value="BC">Business and Commerce</option>
+          <option value="ENV">Environment</option>
+          <option value="HO">Housing</option>
+          <option value="ST">Science and Technology</option>
+          <option value="CD">Community Development</option>
+          <option value="ISS">Social Services</option>
+          <option value="EN">Energy</option>
+        </select>
+      </div>
+    </div>
+    <div class="row">
+      <div>
+        <label>Funding Amount</label>
+        <select id="search-amount">
+          <option value="">Any</option>
+          <option value="under50">Under $50,000</option>
+          <option value="50to250">$50,000 – $250,000</option>
+          <option value="250to1000">$250,000 – $1,000,000</option>
+          <option value="over1000">$1,000,000+</option>
+        </select>
+      </div>
+    </div>
+    <div class="row">
+      <div>
         <label>Max Results</label>
         <select id="search-limit">
           <option value="5">5 grants</option>
@@ -587,6 +679,17 @@
       <div class="icon">🔍</div>
       <p>Run a search to pull live grants from Grants.gov</p>
     </div>
+  </div>
+</div>
+
+
+<!-- SAVED GRANTS -->
+<div class="panel" id="panel-saved">
+  <div class="section-title">Saved Grants</div>
+  <p class="section-sub">Grants you save stay on your account. Sign in required.</p>
+  <input id="saved-filter" type="search" placeholder="Search saved grants" oninput="filterSavedGrants()" style="width:100%;margin:0 0 12px;padding:12px 14px;border-radius:10px;border:1px solid var(--border);background:var(--surface);color:var(--cream);font-size:14px">
+  <div id="saved-results">
+    <div class="empty-state"><div class="icon">📌</div><p>No saved grants yet. Save one from search or an eligibility result.</p></div>
   </div>
 </div>
 
@@ -781,6 +884,17 @@ function escapeHTML(value) {
 }
 
 // ─── TAB SWITCHING ───
+
+function siteSearch(event) {
+  event.preventDefault();
+  const q = document.getElementById('site-search').value.trim();
+  if (!q) return;
+  const input = document.getElementById('search-query');
+  if (input) input.value = q;
+  switchTab('grants');
+  searchGrants();
+}
+
 function switchTab(id, evt) {
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
   document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
@@ -788,6 +902,7 @@ function switchTab(id, evt) {
   if (tab) tab.classList.add('active');
   const panel = document.getElementById('panel-' + id);
   if (panel) panel.classList.add('active');
+  if (id === 'saved') loadSavedGrants();
 }
 
 
@@ -887,6 +1002,32 @@ function clearSavedData() {
 
 const PROFILE_KEY = 'granthive-profile';
 
+
+
+function attachPasswordEyes(root) {
+  (root || document).querySelectorAll('input[type="password"], input[type="text"][name="password"]').forEach(input => {
+    if (input.dataset.eye) return;
+    const parent = input.parentElement;
+    if (!parent) return;
+    input.dataset.eye = '1';
+    parent.style.position = 'relative';
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'pw-toggle';
+    btn.setAttribute('aria-label', 'Show password');
+    btn.textContent = '👁';
+    btn.addEventListener('click', () => {
+      const show = input.type === 'password';
+      input.type = show ? 'text' : 'password';
+      btn.textContent = show ? '🙈' : '👁';
+      btn.setAttribute('aria-label', show ? 'Hide password' : 'Show password');
+    });
+    parent.appendChild(btn);
+  });
+}
+
+const identityObserver = new MutationObserver(() => attachPasswordEyes(document));
+identityObserver.observe(document.documentElement, { childList: true, subtree: true });
 
 function openAccount() {
   if (!window.netlifyIdentity) {
@@ -1132,7 +1273,10 @@ function renderEligibilityResult(data, grantName, savedAt) {
         </div>
         <div class="status-badge ${verdictClass}">${verdictDot} ${escapeHTML(data.verdict)}</div>
       </div>
-      <button class="btn-ghost" id="copy-result-btn" onclick="copyEligibilityResult()">Copy result</button>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn-ghost" onclick="saveCurrentResult()">Save grant</button>
+        <button class="btn-ghost" id="copy-result-btn" onclick="copyEligibilityResult()">Copy result</button>
+      </div>
     </div>
 
     <div class="score-ring">
@@ -1181,7 +1325,10 @@ async function searchGrants() {
         keyword: query || 'business',
         rows: Number(limit) || 10,
         sortBy: sort,
-        eligibility
+        eligibility,
+        fundingInstruments: document.getElementById('search-funding-type').value,
+        fundingCategories: document.getElementById('search-grant-type').value,
+        amount: document.getElementById('search-amount').value
       })
     });
 
@@ -1233,14 +1380,124 @@ function renderGrantCard(grant) {
     </div>
     <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
       <button class="btn-ghost" onclick="useGrant(${grant._index})">Check eligibility</button>
+      <button class="btn-ghost" onclick="saveGrantFromCard(${grant._index})">Save</button>
       ${grant.opportunityId ? `<a class="btn-ghost" style="text-decoration:none" href="https://www.grants.gov/search-results-detail/${encodeURIComponent(grant.opportunityId)}" target="_blank" rel="noopener">View on Grants.gov</a>` : ''}
     </div>
   </div>`;
 }
 
+
+function authToken() {
+  const user = window.netlifyIdentity && window.netlifyIdentity.currentUser();
+  return user && user.token ? user.token.access_token : '';
+}
+
+function requireSignIn() {
+  if (authToken()) return true;
+  if (window.netlifyIdentity) window.netlifyIdentity.open();
+  return false;
+}
+
+async function loadSavedGrants() {
+  const box = document.getElementById('saved-results');
+  if (!box) return;
+  const token = authToken();
+  if (!token) {
+    box.innerHTML = '<div class="empty-state"><div class="icon">🔐</div><p>Sign in to see saved grants.</p></div>';
+    return;
+  }
+  const res = await fetch('/.netlify/functions/saved-grants', { headers: { Authorization: 'Bearer ' + token } });
+  const data = await res.json().catch(() => ({}));
+  const grants = Array.isArray(data.grants) ? data.grants : [];
+  window.__savedGrants = grants;
+  renderSavedGrants(grants);
+}
+
+function filterSavedGrants() {
+  const term = (document.getElementById('saved-filter').value || '').trim().toLowerCase();
+  const grants = window.__savedGrants || [];
+  const shown = grants.filter(g => !term || [g.title, g.agency, g.number].join(' ').toLowerCase().includes(term));
+  renderSavedGrants(shown);
+}
+
+function renderSavedGrants(grants) {
+  const box = document.getElementById('saved-results');
+  if (!grants.length) {
+    box.innerHTML = '<div class="empty-state"><div class="icon">📌</div><p>No saved grants yet.</p></div>';
+    return;
+  }
+  box.innerHTML = grants.map(g => `
+    <div class="grant-card">
+      <div class="grant-card-title">${escapeHTML(g.title)}</div>
+      <div class="grant-meta">
+        ${g.agency ? `<span class="tag agency">🏛 ${escapeHTML(g.agency)}</span>` : ''}
+        ${g.closeDate ? `<span class="tag deadline">⏱ ${escapeHTML(g.closeDate)}</span>` : ''}
+        ${g.number ? `<span class="tag">${escapeHTML(g.number)}</span>` : ''}
+      </div>
+      <div style="display:flex;gap:8px;margin-top:12px">
+        <button class="btn-ghost" onclick="removeSavedGrant('${escapeHTML(g.id)}')">Remove</button>
+      </div>
+    </div>`).join('');
+}
+
+async function saveGrant(grant) {
+  if (!requireSignIn()) return;
+  const res = await fetch('/.netlify/functions/saved-grants', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + authToken() },
+    body: JSON.stringify(grant)
+  });
+  if (!res.ok) {
+    alert('Could not save that grant. Sign in and try again.');
+    return;
+  }
+  await loadSavedGrants();
+  alert('Saved.');
+}
+
+function saveGrantFromCard(index) {
+  const grant = lastGrants[index];
+  if (!grant) return;
+  const amountNumber = Number(grant.awardCeiling);
+  const amount = Number.isFinite(amountNumber) && amountNumber > 0 ? `$${amountNumber.toLocaleString()}` : 'Amount TBD';
+  saveGrant({
+    id: grant.opportunityId || grant.opportunityNumber || grant.opportunityTitle,
+    title: grant.opportunityTitle || 'Federal Grant',
+    agency: grant.agencyName || '',
+    number: grant.opportunityNumber || '',
+    opportunityId: grant.opportunityId || '',
+    closeDate: grant.closeDate || 'Open',
+    amount,
+    source: 'federal'
+  });
+}
+
+function saveCurrentResult() {
+  const name = document.getElementById('grant-name').value.trim() || 'Saved eligibility result';
+  saveGrant({
+    id: 'result-' + name.slice(0, 80),
+    title: name,
+    agency: '',
+    number: '',
+    closeDate: '',
+    amount: '',
+    source: 'eligibility'
+  });
+}
+
+async function removeSavedGrant(id) {
+  if (!requireSignIn()) return;
+  await fetch('/.netlify/functions/saved-grants', {
+    method: 'DELETE',
+    headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + authToken() },
+    body: JSON.stringify({ id })
+  });
+  loadSavedGrants();
+}
+
 loadProfile();
   if (window.netlifyIdentity) {
-    window.netlifyIdentity.on("init", user => { setAccountLabel(user); if (user) loadProfileFromAccount(); });
+    window.netlifyIdentity.on("init", user => { setAccountLabel(user); if (user) { loadProfileFromAccount(); loadSavedGrants(); } });
     window.netlifyIdentity.on("login", user => { setAccountLabel(user); loadProfileFromAccount(); window.netlifyIdentity.close(); });
     window.netlifyIdentity.on("logout", () => setAccountLabel(null));
   }
