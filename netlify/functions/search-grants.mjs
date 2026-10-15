@@ -4,10 +4,14 @@
 // Keeps the browser off the third-party API and returns a stable shape.
 
 const GRANTS_URL = 'https://api.grants.gov/v1/api/search2';
-const TIMEOUT_MS = 15000;
+const TIMEOUT_MS = 20000;
+const DETAIL_URL = "https://api.grants.gov/v1/api/fetchOpportunity";
+const ALLOWED_AMOUNTS = new Set(["", "under50", "50to250", "250to1000", "over1000"]);
 const MAX_ROWS = 25;
 const ALLOWED_SORTS = new Set(['closeDate', 'openDate', 'awardCeiling']);
 const ALLOWED_ELIG = new Set(['', '25', '12', '20', '06']);
+const ALLOWED_INSTRUMENTS = new Set(['', 'G', 'CA', 'O']);
+const ALLOWED_CATEGORIES = new Set(['', 'AG', 'AR', 'BC', 'CD', 'ED', 'EN', 'ENV', 'HL', 'HO', 'ISS', 'ST']);
 
 function jsonResponse(statusCode, body) {
   return {
@@ -64,6 +68,12 @@ async function handler(event) {
   if (!ALLOWED_ELIG.has(String(elig))) {
     return safeError(400, 'Eligibility filter is invalid.');
   }
+  const instrument = String(input.fundingInstruments || input.fundingType || '');
+  const category = String(input.fundingCategories || input.grantType || '');
+  const amount = String(input.amount || '');
+  if (!ALLOWED_INSTRUMENTS.has(instrument)) return safeError(400, 'Funding type is invalid.');
+  if (!ALLOWED_CATEGORIES.has(category)) return safeError(400, 'Grant type is invalid.');
+  if (!ALLOWED_AMOUNTS.has(amount)) return safeError(400, 'Funding amount is invalid.');
 
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
@@ -71,10 +81,12 @@ async function handler(event) {
   try {
     const body = {
       keyword,
-      rows,
+      rows: amount ? MAX_ROWS : rows,
       oppStatuses: 'forecasted|posted'
     };
     if (elig) body.eligibilities = String(elig);
+    if (instrument) body.fundingInstruments = instrument;
+    if (category) body.fundingCategories = category;
     const res = await fetch(GRANTS_URL, {
       method: 'POST',
       headers: {
@@ -96,7 +108,7 @@ async function handler(event) {
       return safeError(502, 'Grant search is temporarily unavailable.');
     }
     const raw = data?.data?.oppHits || data?.oppHits || [];
-    const grants = raw.slice(0, rows).map(g => ({
+    let grants = raw.slice(0, amount ? MAX_ROWS : rows).map(g => ({
       opportunityTitle: String(g.title || g.opportunityTitle || 'Federal Grant Opportunity').slice(0, 300),
       agencyName: String(g.agency || g.agencyName || 'Federal Agency').slice(0, 200),
       synopsis: String(g.synopsis || g.description || g.title || 'See Grants.gov for details.').slice(0, 800),
@@ -105,6 +117,33 @@ async function handler(event) {
       opportunityNumber: g.number || g.opportunityNumber ? String(g.number || g.opportunityNumber).slice(0, 80) : '',
       opportunityId: g.id ? String(g.id).slice(0, 40) : ''
     }));
+
+    if (amount) {
+      grants = await Promise.all(grants.map(async (grant) => {
+        if (!grant.opportunityId) return grant;
+        try {
+          const detailRes = await fetch(DETAIL_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+            body: JSON.stringify({ opportunityId: grant.opportunityId }),
+            signal: controller.signal
+          });
+          if (!detailRes.ok) return grant;
+          const detail = await detailRes.json();
+          const ceiling = Number(detail?.data?.synopsis?.awardCeiling);
+          if (Number.isFinite(ceiling) && ceiling > 0) grant.awardCeiling = ceiling;
+        } catch {}
+        return grant;
+      }));
+      const ranges = {
+        under50: [0, 50000],
+        '50to250': [50000, 250000],
+        '250to1000': [250000, 1000000],
+        over1000: [1000000, Infinity]
+      };
+      const [min, max] = ranges[amount];
+      grants = grants.filter(g => g.awardCeiling && g.awardCeiling >= min && g.awardCeiling < max).slice(0, rows);
+    }
 
     return jsonResponse(200, {
       source: 'grants.gov',
