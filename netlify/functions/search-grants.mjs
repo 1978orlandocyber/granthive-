@@ -34,6 +34,38 @@ function clampInt(value, fallback, min, max) {
   return Math.min(max, Math.max(min, n));
 }
 
+function dateValue(v) {
+  if (!v) return null;
+  const t = Date.parse(v);
+  return Number.isFinite(t) ? t : null;
+}
+
+// The Grants.gov search2 request does not apply ordering, so the UI's
+// Sort By control is implemented here. Missing/invalid values sort last.
+function sortGrants(grants, sortBy) {
+  const arr = [...grants];
+  if (sortBy === 'awardCeiling') {
+    arr.sort((a, b) => (Number(b.awardCeiling) || 0) - (Number(a.awardCeiling) || 0));
+  } else if (sortBy === 'openDate') {
+    arr.sort((a, b) => {
+      const x = dateValue(a.openDate), y = dateValue(b.openDate);
+      if (x === null && y === null) return 0;
+      if (x === null) return 1;
+      if (y === null) return -1;
+      return y - x; // newest first
+    });
+  } else { // closeDate: closing soon first
+    arr.sort((a, b) => {
+      const x = dateValue(a.closeDate), y = dateValue(b.closeDate);
+      if (x === null && y === null) return 0;
+      if (x === null) return 1;
+      if (y === null) return -1;
+      return x - y;
+    });
+  }
+  return arr;
+}
+
 async function handler(event) {
   if (event.httpMethod !== 'POST' && event.httpMethod !== 'GET') {
     return {
@@ -115,7 +147,9 @@ async function handler(event) {
       awardCeiling: Number.isFinite(Number(g.awardCeiling)) ? Number(g.awardCeiling) : null,
       closeDate: g.closeDate ? String(g.closeDate).slice(0, 40) : null,
       opportunityNumber: g.number || g.opportunityNumber ? String(g.number || g.opportunityNumber).slice(0, 80) : '',
-      opportunityId: g.id ? String(g.id).slice(0, 40) : ''
+      opportunityId: g.id ? String(g.id).slice(0, 40) : '',
+      openDate: g.openDate ? String(g.openDate).slice(0, 40) : null,
+      oppStatus: String(g.oppStatus || g.status || '').slice(0, 20).toLowerCase()
     }));
 
     if (amount) {
@@ -144,6 +178,8 @@ async function handler(event) {
       const [min, max] = ranges[amount];
       grants = grants.filter(g => g.awardCeiling && g.awardCeiling >= min && g.awardCeiling < max).slice(0, rows);
     }
+
+    grants = sortGrants(grants, sortBy);
 
     return jsonResponse(200, {
       source: 'grants.gov',
