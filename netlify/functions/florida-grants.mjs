@@ -99,6 +99,61 @@ const GRANTS = [
     url: "https://www.volunteerflorida.org/"
   },
   {
+    id: "fl-mompops",
+    title: "Mom and Pop Small Business Grant",
+    agency: "Miami-Dade County",
+    audience: "for-profit",
+    amount: "Up to $5,000. Amount varies by district.",
+    closeDate: "Opens and closes by commission district",
+    category: "Small business",
+    summary: "Local grant for Miami-Dade for-profit small businesses. Funds equipment, supplies, advertising, insurance, and minor renovations. Business must be in the district that is open. Not statewide.",
+    url: "https://www.miamidade.gov/mom-pop-grants/"
+  },
+  {
+    id: "fl-export",
+    title: "Export Marketing Plan Grant",
+    agency: "SelectFlorida",
+    audience: "for-profit",
+    amount: "Up to $4,500",
+    closeDate: "Rolling",
+    category: "Trade",
+    summary: "Helps Florida manufacturers and service providers build an export marketing plan. Company pays $500. SelectFlorida covers up to $4,500. Limited to one per lifetime.",
+    url: "https://selectflorida.org/export-from-florida/trade-grants/export-marketing-plans/"
+  },
+  {
+    id: "fl-uwf",
+    title: "United Way of West Florida Mini Grants",
+    agency: "United Way of West Florida",
+    audience: "nonprofit",
+    amount: "Up to $5,000",
+    closeDate: "Check United Way of West Florida",
+    category: "Capacity",
+    summary: "Capacity grants for grassroots nonprofits in the West Florida service area. Funds professional development, consulting, software, and non-salary operations. Not statewide.",
+    url: "https://www.unitedwaywestflorida.org/"
+  },
+  {
+    id: "fl-crop",
+    title: "Specialty Crop Block Grant",
+    agency: "Florida Department of Agriculture and Consumer Services",
+    audience: "nonprofit",
+    amount: "Competitive. Varies by project",
+    closeDate: "Annual",
+    category: "Agriculture",
+    summary: "Funds projects that improve the market for specialty crops. Typical applicants are agricultural organizations and nonprofits. Confirm the current FDACS cycle.",
+    url: "https://www.fdacs.gov/Agriculture-Industry/Grants-and-Funding-Opportunities"
+  },
+  {
+    id: "fl-library",
+    title: "Library Cooperative Grants",
+    agency: "Florida Division of Library and Information Services",
+    audience: "nonprofit",
+    amount: "Formula. Awarded annually",
+    closeDate: "Annual",
+    category: "Libraries",
+    summary: "Grants for Florida libraries and nonprofit organizations that support library services, resource sharing, digitization, and cooperative systems.",
+    url: "https://dos.fl.gov/library-archives/library-development/funding/"
+  },
+  {
     id: "fl-commerce",
     title: "FloridaCommerce Incentives and Grants",
     agency: "FloridaCommerce",
