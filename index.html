@@ -515,6 +515,9 @@
   @media (max-width: 640px) {
     .start-here { margin: 8px 16px 0; }
   }
+
+  .pro-list { margin: 12px 0 16px 18px; color: var(--cream); }
+  .pro-list li { margin: 6px 0; }
 </style>
 <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
 </head>
@@ -538,6 +541,7 @@
   <div class="tab" onclick="switchTab('florida', event)">Florida</div>
   <div class="tab" onclick="switchTab('calendar', event)">Calendar</div>
   <div class="tab" onclick="switchTab('saved', event)">Saved</div>
+  <div class="tab" onclick="switchTab('pro', event)">Pro</div>
 </div>
 
 <!-- ELIGIBILITY CHECKER -->
@@ -823,6 +827,38 @@
       <span class="tag">Major gifts · Individual</span>
     </div>
   </div>
+</div>
+
+
+<!-- PRO -->
+<div class="panel" id="panel-pro">
+  <div class="section-title">GrantHive Pro</div>
+  <p class="section-sub">Free stays free. Pro is the paid plan, and payment is not connected yet.</p>
+  <div class="row">
+    <div class="card">
+      <div class="card-title">Free</div>
+      <div class="grant-desc">What you have now.</div>
+      <ul class="pro-list">
+        <li>Eligibility check</li>
+        <li>Federal search</li>
+        <li>Florida starter list</li>
+        <li>Grant calendar</li>
+        <li>Saved grants</li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="card-title">Pro</div>
+      <div class="grant-desc">What Pro will add.</div>
+      <ul class="pro-list">
+        <li>A larger Florida list</li>
+        <li>Deadline reminders</li>
+        <li>More saved grants</li>
+        <li>Priority support</li>
+      </ul>
+      <button class="btn" onclick="alert('Payment is not connected yet. Pro is the next build step.')">Join Pro</button>
+    </div>
+  </div>
+  <div class="tip-box">Nothing you use today is locked. Pro is an add-on, not a gate.</div>
 </div>
 
 <!-- SAVED GRANTS -->
