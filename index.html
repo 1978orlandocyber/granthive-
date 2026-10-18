@@ -18,7 +18,7 @@
     --gold: #c9a84c;
     --gold-light: #f0d080;
     --cream: #f5f0e8;
-    --muted: #5a5a6a;
+    --muted: #c8c8d0;
     --surface: #16161a;
     --surface2: #1e1e24;
     --border: rgba(201,168,76,0.2);
@@ -73,14 +73,11 @@
   }
 
   .logo {
-    width: 38px; height: 38px;
-    background: var(--gold);
+    width: 48px;
+    height: 48px;
+    object-fit: contain;
     border-radius: 8px;
-    display: flex; align-items: center; justify-content: center;
-    font-family: 'Playfair Display', serif;
-    font-size: 18px;
-    color: var(--ink);
-    font-weight: 900;
+    flex-shrink: 0;
   }
 
   header h1 {
@@ -523,7 +520,7 @@
 <body>
 
 <header>
-  <div class="logo">G</div>
+  <img class="logo" src="/logo.svg" alt="GrantHive">
   <h1>GrantHive</h1>
   <button class="btn-ghost" id="account-btn" onclick="openAccount()">Sign in</button>
 </header>
@@ -545,10 +542,12 @@
 <!-- ELIGIBILITY CHECKER -->
 <div class="panel active" id="panel-eligibility">
   <div class="section-title">Eligibility</div>
-  <p class="section-sub">Enter your organization profile and a grant description — Claude will score your eligibility and flag each requirement.</p>
+  <p class="section-sub">Check one real grant against your organization. The app does not pick the grant for you.</p>
 
   <div class="tip-box">
-    💡 Eligibility requests now pass through GrantHive’s secure Netlify Function. The Anthropic API key never enters the browser.
+    1. Search on <strong>Federal</strong> or <strong>Florida</strong>.<br>
+    2. Tap <strong>Check eligibility</strong> on a grant card.<br>
+    3. The grant name and description fill in here. Then tap Check My Eligibility.
   </div>
 
   <div class="card">
@@ -596,9 +595,9 @@
   </div>
 
   <div class="card">
-    <div class="card-title">Grant Description</div>
-    <label>Paste the full grant description or eligibility requirements</label>
-    <textarea id="grant-desc" placeholder="Paste grant description here..." maxlength="8000">The SBIR Phase I grant supports early-stage small businesses engaged in research and development with potential for commercialization. Eligible applicants must be: a for-profit U.S. small business with 500 or fewer employees, majority owned by U.S. citizens or permanent residents, and operating in a STEM-related field. Projects must demonstrate innovative technology with a clear path to commercialization. Maximum award is $275,000. Principal Investigator must be primarily employed by the applicant organization.</textarea>
+    <div class="card-title">The grant you picked</div>
+    <label>Grant description. Filled when you tap Check eligibility, or paste it from Grants.gov.</label>
+    <textarea id="grant-desc" placeholder="This fills in after you tap Check eligibility on a grant. Or paste the grant’s own description here." maxlength="8000"></textarea>
     <label>Grant Name (optional)</label>
     <input type="text" id="grant-name" placeholder="e.g. SBIR Phase I — NIH" value="SBIR Phase I — NIH" maxlength="200">
   </div>
