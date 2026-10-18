@@ -2,7 +2,6 @@
 //
 // Secure server-side eligibility checker for GrantHive.
 
-import { createHmac, timingSafeEqual } from 'node:crypto';
 
 const ANTHROPIC_URL = 'https://api.anthropic.com/v1/messages';
 const ANTHROPIC_TIMEOUT_MS = 20000;
@@ -28,38 +27,34 @@ Analyze only the organization profile and grant information supplied in the user
 
 Return only one valid JSON object containing score, verdict, summary, and checks. Do not return markdown, code fences, commentary, or additional fields. Never claim that an award is guaranteed. Use "maybe" whenever the submitted profile does not contain enough evidence to verify a requirement.`;
 
-function verifyIdentityToken(token, secret) {
-  const parts = String(token).split('.');
-  if (parts.length !== 3) return null;
-  try {
-    const decodedHeader = JSON.parse(Buffer.from(parts[0], 'base64url').toString('utf8'));
-    // Reject alg=none and any unexpected algorithm (algorithm-confusion protection).
-    if (decodedHeader.alg !== 'HS256') return null;
-    const signingInput = parts[0] + '.' + parts[1];
-    const expected = createHmac('sha256', secret).update(signingInput).digest();
-    const actual = Buffer.from(parts[2], 'base64url');
-    if (actual.length !== expected.length || !timingSafeEqual(actual, expected)) return null;
-    const payload = JSON.parse(Buffer.from(parts[1], 'base64url').toString('utf8'));
-    if (!payload.sub) return null;
-    const now = Math.floor(Date.now() / 1000);
-    if (typeof payload.exp === 'number' && payload.exp <= now) return null;
-    return { id: payload.sub, email: payload.email || '' };
-  } catch {
-    return null;
-  }
-}
 
-function userFromRequestToken(event) {
-  const secret = process.env.IDENTITY_JWT_SECRET;
-  if (!secret) {
-    console.error('IDENTITY_JWT_SECRET is not configured.');
-    return null;
-  }
+// Validates the caller's Netlify Identity token by asking the Identity
+// service itself (GoTrue): the token is accepted only if the site's own
+// Identity endpoint recognizes it. No secret to configure, nothing to
+// rotate -- validation is done by the token issuer. Returns { id, email }
+// or null.
+async function userFromRequestToken(event) {
   const headers = event.headers || {};
   const raw = headers.authorization || headers.Authorization || '';
   const token = String(raw).startsWith('Bearer ') ? String(raw).slice(7).trim() : '';
   if (!token) return null;
-  return verifyIdentityToken(token, secret);
+  const base = (process.env.URL || process.env.DEPLOY_URL || '').replace(/\/$/, '');
+  if (!base) {
+    console.error('Site URL is not configured; cannot validate sign-in.');
+    return null;
+  }
+  try {
+    const res = await fetch(base + '/.netlify/identity/user', {
+      headers: { Authorization: 'Bearer ' + token }
+    });
+    if (!res.ok) return null;
+    const user = await res.json().catch(() => null);
+    if (!user || !user.id) return null;
+    return { id: user.id, email: user.email || '' };
+  } catch (err) {
+    console.error('Identity validation failed:', err && err.message);
+    return null;
+  }
 }
 
 function jsonResponse(statusCode, body, extraHeaders = {}) {
@@ -278,12 +273,8 @@ async function handler(event) {
     return safeError(500, 'Eligibility service is temporarily unavailable.');
   }
 
-  if (!process.env.IDENTITY_JWT_SECRET) {
-    console.error('IDENTITY_JWT_SECRET is not configured.');
-    return safeError(503, 'Eligibility service is temporarily unavailable.');
-  }
   // The AI call costs money on every request, so it requires a signed-in user.
-  if (!userFromRequestToken(event)) {
+  if (!(await userFromRequestToken(event))) {
     return safeError(401, 'Sign in required to run an eligibility check.');
   }
 
