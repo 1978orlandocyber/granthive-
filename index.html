@@ -4,10 +4,10 @@
 <meta charset="UTF-8">
 <link rel="icon" href="/logo.svg" type="image/svg+xml" sizes="32x32">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>GrantHive — AI Grant Eligibility and Federal Search</title>
+<title>GrantHive — AI Grant Eligibility and Grant Search</title>
 <meta name="description" content="GrantHive helps organizations check grant eligibility with AI and search live federal opportunities from Grants.gov.">
 <meta name="robots" content="index, follow">
-<meta property="og:title" content="GrantHive — AI Grant Eligibility and Federal Search">
+<meta property="og:title" content="GrantHive — AI Grant Eligibility and Grant Search">
 <meta property="og:description" content="Check grant eligibility with AI and search live federal opportunities from Grants.gov.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://tubular-torrone-510c65.netlify.app/">
@@ -260,6 +260,31 @@
   .status-badge.checking { background: rgba(201,168,76,0.1); color: var(--gold); }
   .status-badge.eligible { background: rgba(76,175,125,0.12); color: var(--success); }
   .status-badge.review { background: rgba(224,92,92,0.12); color: var(--error); }
+  .status-badge.ineligible { background: rgba(224,92,92,0.18); color: var(--error); }
+
+  .pursuit-band {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    border-radius: 10px;
+    padding: 12px 14px;
+    font-size: 13px;
+    margin: 0 0 16px;
+    line-height: 1.5;
+  }
+  .pursuit-band.strong { background: rgba(76,175,125,0.10); border: 1px solid rgba(76,175,125,0.35); }
+  .pursuit-band.moderate { background: rgba(201,168,76,0.08); border: 1px solid var(--border); }
+  .pursuit-band.weak { background: rgba(224,92,92,0.08); border: 1px solid rgba(224,92,92,0.25); }
+  .pursuit-band .pb-label {
+    font-weight: 700;
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+  }
+  .pursuit-band.strong .pb-label { color: var(--success); }
+  .pursuit-band.moderate .pb-label { color: var(--gold); }
+  .pursuit-band.weak .pb-label { color: var(--error); }
 
   .check-row {
     display: flex;
@@ -534,10 +559,11 @@
   <button type="submit">Search</button>
 </form>
 
-<p class="start-here">Start with Eligibility, or search Federal or Florida grants. Calendar is only a planning guide.</p>
+<p class="start-here">Start with Eligibility — or search Federal grants, past Winners, or Florida grants. The Calendar is a planning guide.</p>
 <div class="tabs">
   <div class="tab active" onclick="switchTab('eligibility', event)">Eligibility</div>
   <div class="tab" onclick="switchTab('grants', event)">Federal</div>
+  <div class="tab" onclick="switchTab('winners', event)">Winners</div>
   <div class="tab" onclick="switchTab('florida', event)">Florida</div>
   <div class="tab" onclick="switchTab('calendar', event)">Calendar</div>
   <div class="tab" onclick="switchTab('saved', event)">Saved</div>
@@ -610,7 +636,8 @@
   <button class="btn" id="check-btn" onclick="runEligibilityCheck()">
     ✦ Check My Eligibility
   </button>
-  <p style="margin-top:8px;font-size:12px;color:var(--muted)">Limit: 8 checks per minute on this device.</p>
+  <p style="margin-top:8px;font-size:12px;color:var(--muted)">Up to 8 checks per minute. Sign-in required.</p>
+  <p style="margin-top:8px;font-size:12px;color:var(--muted)">Your organization profile and the grant description are sent to GrantHive&apos;s AI provider to produce this screening score. Avoid pasting sensitive personal data.</p>
 
   <div class="result-box" id="eligibility-result"></div>
   <button class="btn-ghost" style="margin-top:16px" onclick="clearSavedData()">Clear saved data</button>
@@ -619,10 +646,10 @@
 <!-- GRANTS.GOV SEARCH -->
 <div class="panel" id="panel-grants">
   <div class="section-title">Grants.gov Live Search</div>
-  <p class="section-sub">Search real federal grants through GrantHive. The browser never calls Grants.gov directly.</p>
+  <p class="section-sub">Search real federal grants through GrantHive — live results from Grants.gov, without visiting their site.</p>
 
   <div class="tip-box">
-    💡 Search requests now go through GrantHive’s Netlify Function. The Swift example below is a separate client sample.
+    💡 Tip: searches run on GrantHive’s server and show live results from Grants.gov — you never have to visit their site yourself.
   </div>
 
   <div class="card">
@@ -707,19 +734,59 @@
     <button class="btn" onclick="searchGrants()" id="search-btn">
       ⌕ Search Federal Grants
     </button>
-    <p style="margin-top:8px;font-size:12px;color:var(--muted)">Limit: 20 searches per minute on this device.</p>
+    <p style="margin-top:8px;font-size:12px;color:var(--muted)">Up to 20 searches per minute.</p>
   </div>
 
   <input id="grant-filter" type="search" placeholder="Filter these results by title, agency, or number" oninput="filterGrants()" style="display:none;width:100%;margin:12px 0 4px;padding:12px 14px;border-radius:10px;border:1px solid var(--border);background:var(--surface);color:var(--cream);font-size:14px">
   <div id="grants-results">
     <div class="empty-state">
       <div class="icon">🔍</div>
-      <p>Run a search to pull live grants from Grants.gov</p>
+      <p>Run a search to find live grants from Grants.gov.</p>
     </div>
   </div>
 </div>
 
 
+
+<!-- AWARD HISTORY -->
+<div class="panel" id="panel-winners">
+  <div class="section-title">Federal Award History</div>
+  <p class="section-sub">Who actually won federal grants — from USAspending.gov, the free public record. Pair this with the Federal search: find what&apos;s open, then see who gets funded.</p>
+
+  <div class="card">
+    <div class="card-title">Search Parameters</div>
+    <div class="row">
+      <div>
+        <label>Keywords</label>
+        <input type="text" id="award-query" placeholder="e.g. health, education, housing" value="health">
+      </div>
+      <div>
+        <label>Recipient state (optional)</label>
+        <input type="text" id="award-state" placeholder="e.g. FL" maxlength="2" style="text-transform:uppercase">
+      </div>
+    </div>
+    <div class="row">
+      <div>
+        <label>Sort By</label>
+        <select id="award-sort">
+          <option value="amount">Largest Awards</option>
+          <option value="date">Most Recent</option>
+        </select>
+      </div>
+    </div>
+    <button class="btn" onclick="searchAwards()" id="award-btn">
+      &#x1F3C6; Search Award History
+    </button>
+    <p style="margin-top:8px;font-size:12px;color:var(--muted)">Up to 20 searches per minute.</p>
+  </div>
+
+  <div id="award-results">
+    <div class="empty-state">
+      <div class="icon">&#x1F3C6;</div>
+      <p>Run a search to see who won federal grants</p>
+    </div>
+  </div>
+</div>
 
 <!-- FLORIDA -->
 <div class="panel" id="panel-florida">
@@ -833,15 +900,16 @@
 <!-- PRO -->
 <div class="panel" id="panel-pro">
   <div class="section-title">GrantHive Pro</div>
-  <p class="section-sub">Free stays free. Pro is the paid plan, and payment is not connected yet.</p>
+  <p class="section-sub">Free stays free. Pro is coming later — nothing you use today will be locked.</p>
   <div class="row">
     <div class="card">
       <div class="card-title">Free</div>
-      <div class="grant-desc">What you have now.</div>
+      <div class="grant-desc">What you have now, forever.</div>
       <ul class="pro-list">
         <li>Eligibility check</li>
         <li>Federal search</li>
         <li>Florida starter list</li>
+        <li>Award history (Winners)</li>
         <li>Grant calendar</li>
         <li>Saved grants</li>
       </ul>
@@ -850,12 +918,12 @@
       <div class="card-title">Pro</div>
       <div class="grant-desc">What Pro will add.</div>
       <ul class="pro-list">
-        <li>A larger Florida list</li>
         <li>Deadline reminders</li>
-        <li>More saved grants</li>
-        <li>Priority support</li>
+        <li>New-grant alerts matched to you</li>
+        <li>Unlimited checks and saved grants</li>
+        <li>Foundation prospecting</li>
+        <li>Application pipeline tracker</li>
       </ul>
-      <button class="btn" onclick="alert('Payment is not connected yet. Pro is the next build step.')">Join Pro</button>
     </div>
   </div>
   <div class="tip-box">Nothing you use today is locked. Pro is an add-on, not a gate.</div>
@@ -864,184 +932,10 @@
 <!-- SAVED GRANTS -->
 <div class="panel" id="panel-saved">
   <div class="section-title">Saved Grants</div>
-  <p class="section-sub">Grants you save stay on your account. Sign in required.</p>
+  <p class="section-sub">Grants you save stay on your account. Track what happened to each one — applied, won, lost. Sign in required.</p>
   <input id="saved-filter" type="search" placeholder="Search saved grants" oninput="filterSavedGrants()" style="width:100%;margin:0 0 12px;padding:12px 14px;border-radius:10px;border:1px solid var(--border);background:var(--surface);color:var(--cream);font-size:14px">
   <div id="saved-results">
     <div class="empty-state"><div class="icon">📌</div><p>No saved grants yet. Save one from search or an eligibility result.</p></div>
-  </div>
-</div>
-
-<!-- SWIFT CODE -->
-<div class="panel" id="panel-code">
-  <div class="section-title">Swift Integration Code</div>
-  <p class="section-sub">Drop these two files into your Xcode project to wire up both features in GrantHive.</p>
-
-  <div class="card">
-    <div class="card-title">File 1 — GrantsGovService.swift</div>
-    <p style="font-size:13px;color:var(--muted);margin-bottom:12px;">Fetches live grants from the Grants.gov API. Add to your Services/ group.</p>
-    <div class="code-block"><span class="c">// GrantsGovService.swift — Add to GrantHive Xcode project</span>
-<span class="k">import</span> Foundation
-
-<span class="k">struct</span> FederalGrant: Identifiable, Codable {
-    <span class="k">let</span> id: String
-    <span class="k">let</span> title: String
-    <span class="k">let</span> agency: String
-    <span class="k">let</span> description: String
-    <span class="k">let</span> awardCeiling: Int?
-    <span class="k">let</span> closeDate: String?
-    <span class="k">let</span> opportunityNumber: String
-
-    <span class="k">enum</span> CodingKeys: String, CodingKey {
-        <span class="k">case</span> id = <span class="s">"id"</span>
-        <span class="k">case</span> title = <span class="s">"opportunityTitle"</span>
-        <span class="k">case</span> agency = <span class="s">"agencyName"</span>
-        <span class="k">case</span> description = <span class="s">"synopsis"</span>
-        <span class="k">case</span> awardCeiling
-        <span class="k">case</span> closeDate
-        <span class="k">case</span> opportunityNumber
-    }
-}
-
-<span class="k">class</span> GrantsGovService: ObservableObject {
-    @Published <span class="k">var</span> grants: [FederalGrant] = []
-    @Published <span class="k">var</span> isLoading = <span class="k">false</span>
-    @Published <span class="k">var</span> error: String?
-
-    <span class="k">func</span> search(keywords: String, eligibility: String? = <span class="k">nil</span>, limit: Int = 10) {
-        isLoading = <span class="k">true</span>
-        error = <span class="k">nil</span>
-
-        <span class="k">var</span> components = URLComponents(string: <span class="s">"https://api.grants.gov/v2/opportunities/search"</span>)!
-        <span class="k">var</span> queryItems = [URLQueryItem]()
-
-        queryItems.append(URLQueryItem(name: <span class="s">"keyword"</span>, value: keywords))
-        queryItems.append(URLQueryItem(name: <span class="s">"rows"</span>, value: String(limit)))
-        queryItems.append(URLQueryItem(name: <span class="s">"oppStatuses"</span>, value: <span class="s">"forecasted|posted"</span>))
-
-        <span class="k">if let</span> elig = eligibility {
-            queryItems.append(URLQueryItem(name: <span class="s">"eligibilities"</span>, value: elig))
-        }
-        components.queryItems = queryItems
-
-        <span class="k">guard let</span> url = components.url <span class="k">else</span> { <span class="k">return</span> }
-
-        URLSession.shared.dataTask(with: url) { [<span class="k">weak self</span>] data, _, err <span class="k">in</span>
-            DispatchQueue.main.async {
-                self?.isLoading = <span class="k">false</span>
-                <span class="k">guard let</span> data = data, err == <span class="k">nil</span> <span class="k">else</span> {
-                    self?.error = <span class="s">"Network error. Try again."</span>
-                    <span class="k">return</span>
-                }
-                <span class="k">do</span> {
-                    <span class="k">let</span> decoded = <span class="k">try</span> JSONDecoder().decode(GrantsResponse.self, from: data)
-                    self?.grants = decoded.hits.hits.map { $0.source }
-                } <span class="k">catch</span> {
-                    self?.error = <span class="s">"Parse error: \(error.localizedDescription)"</span>
-                }
-            }
-        }.resume()
-    }
-}
-
-<span class="c">// Response wrappers</span>
-<span class="k">struct</span> GrantsResponse: Codable {
-    <span class="k">let</span> hits: HitsWrapper
-}
-<span class="k">struct</span> HitsWrapper: Codable {
-    <span class="k">let</span> hits: [HitItem]
-}
-<span class="k">struct</span> HitItem: Codable {
-    <span class="k">let</span> source: FederalGrant
-    <span class="k">enum</span> CodingKeys: String, CodingKey { <span class="k">case</span> source = <span class="s">"_source"</span> }
-}</div>
-  </div>
-
-  <div class="card">
-    <div class="card-title">File 2 — EligibilityService.swift</div>
-    <p style="font-size:13px;color:var(--muted);margin-bottom:12px;">Calls the secure GrantHive backend function. No Anthropic key is stored or shipped in the app.</p>
-    <div class="code-block"><span class="c">// EligibilityService.swift — replace YOUR-DOMAIN after deployment</span>
-<span class="k">import</span> Foundation
-
-<span class="k">struct</span> EligibilityCheck: Codable {
-    <span class="k">let</span> requirement: String
-    <span class="k">let</span> status: String
-    <span class="k">let</span> note: String
-}
-
-<span class="k">struct</span> EligibilityResult: Codable {
-    <span class="k">let</span> score: Int
-    <span class="k">let</span> verdict: String
-    <span class="k">let</span> summary: String
-    <span class="k">let</span> checks: [EligibilityCheck]
-}
-
-<span class="k">struct</span> EligibilityRequest: Codable {
-    <span class="k">let</span> profile: OrganizationProfile
-    <span class="k">let</span> grantName: String
-    <span class="k">let</span> grantDescription: String
-}
-
-<span class="k">struct</span> OrganizationProfile: Codable {
-    <span class="k">let</span> orgType: String
-    <span class="k">let</span> stage: String
-    <span class="k">let</span> industry: String
-    <span class="k">let</span> location: String
-    <span class="k">let</span> employees: String
-}
-
-<span class="k">enum</span> EligibilityServiceError: Error {
-    <span class="k">case</span> invalidURL
-    <span class="k">case</span> invalidResponse
-    <span class="k">case</span> serverError
-}
-
-<span class="k">final class</span> EligibilityService {
-    <span class="c">// Replace this URL after Netlify deployment.</span>
-    <span class="k">private let</span> endpoint =
-        <span class="s">"https://YOUR-DOMAIN.netlify.app/.netlify/functions/check-eligibility"</span>
-
-    <span class="k">func</span> check(requestBody: EligibilityRequest) async throws -> EligibilityResult {
-        <span class="k">guard let</span> url = URL(string: endpoint) <span class="k">else</span> {
-            <span class="k">throw</span> EligibilityServiceError.invalidURL
-        }
-
-        <span class="k">var</span> request = URLRequest(url: url)
-        request.httpMethod = <span class="s">"POST"</span>
-        request.setValue(<span class="s">"application/json"</span>, forHTTPHeaderField: <span class="s">"Content-Type"</span>)
-        request.httpBody = <span class="k">try</span> JSONEncoder().encode(requestBody)
-
-        <span class="k">let</span> (data, response) = <span class="k">try await</span> URLSession.shared.data(for: request)
-
-        <span class="k">guard let</span> http = response <span class="k">as?</span> HTTPURLResponse <span class="k">else</span> {
-            <span class="k">throw</span> EligibilityServiceError.invalidResponse
-        }
-        <span class="k">guard</span> (200...299).contains(http.statusCode) <span class="k">else</span> {
-            <span class="k">throw</span> EligibilityServiceError.serverError
-        }
-
-        <span class="k">return try</span> JSONDecoder().decode(EligibilityResult.self, from: data)
-    }
-}</div>
-  </div>
-  <div class="card">
-    <div class="card-title">How to Connect in Xcode</div>
-    <div class="code-block"><span class="c">// In your DiscoverView.swift — add this to each grant card:</span>
-<span class="k">Button</span>(<span class="s">"Check Eligibility"</span>) {
-    <span class="k">Task</span> {
-        <span class="k">do</span> {
-            <span class="k">let</span> requestBody = EligibilityRequest(
-                profile: store.userProfile,
-                grantName: grant.title,
-                grantDescription: grant.description
-            )
-            <span class="k">let</span> result = <span class="k">try await</span> EligibilityService().check(requestBody: requestBody)
-            self.eligibilityResult = result
-            self.showEligibilitySheet = <span class="k">true</span>
-        } <span class="k">catch</span> {
-            self.eligibilityErrorMessage = <span class="s">"Couldn't check eligibility. Please try again."</span>
-        }
-    }
-}</div>
   </div>
 </div>
 
@@ -1112,8 +1006,8 @@ function renderFlorida() {
         <span class="tag">${g.audience === 'for-profit' ? 'For-profit' : g.audience === 'nonprofit' ? 'Nonprofit' : 'Both'}</span>
       </div>
       <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
-        <button class="btn-ghost" onclick="useFloridaGrant('${g.id}')">Check eligibility</button>
-        <button class="btn-ghost" onclick="saveFloridaGrant('${g.id}')">Save</button>
+        <button class="btn-ghost florida-check-btn" data-id="${escapeHTML(g.id)}">Check eligibility</button>
+        <button class="btn-ghost florida-save-btn" data-id="${escapeHTML(g.id)}">Save</button>
         <a class="btn-ghost" style="text-decoration:none" href="${g.url}" target="_blank" rel="noopener">Official page</a>
       </div>
     </div>`).join('');
@@ -1223,6 +1117,7 @@ function useGrant(index) {
 
 function friendlyError(status, fallback) {
   if (status === 429) return 'Too many requests. Wait about a minute, then try again.';
+  if (status === 401) return 'Sign in required. Your session may have expired — sign in and try again.';
   return fallback;
 }
 
@@ -1243,17 +1138,33 @@ function restoreLastResult() {
   } catch {}
 }
 
-function clearSavedData() {
+async function clearSavedData() {
   localStorage.removeItem('granthive-profile');
   localStorage.removeItem('granthive-last-search');
   localStorage.removeItem(RESULT_KEY);
+  const token = authToken();
+  if (token) {
+    try {
+      await fetch('/.netlify/functions/saved-grants', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
+        body: JSON.stringify({ id: '__all__' })
+      });
+    } catch {}
+    try {
+      await fetch('/.netlify/functions/profile', {
+        method: 'DELETE',
+        headers: { Authorization: 'Bearer ' + token }
+      });
+    } catch {}
+  }
   document.getElementById('eligibility-result').className = 'result-box';
   document.getElementById('eligibility-result').innerHTML = '';
   const container = document.getElementById('grants-results');
   if (container) {
-    document.getElementById('grant-filter').value = ''; document.getElementById('grant-filter').style.display = 'none'; container.innerHTML = '<div class="empty-state"><div class="icon">🔍</div><p>Run a search to pull live grants from Grants.gov</p></div>';
+    document.getElementById('grant-filter').value = ''; document.getElementById('grant-filter').style.display = 'none'; container.innerHTML = '<div class="empty-state"><div class="icon">🔍</div><p>Run a search to find live grants from Grants.gov.</p></div>';
   }
-  alert('Saved profile, search, and result were cleared on this device.');
+  alert(token ? 'Cleared on this device and on your account.' : 'Cleared on this device. Sign in to also clear your account data.');
 }
 
 const PROFILE_KEY = 'granthive-profile';
@@ -1399,6 +1310,9 @@ async function runEligibilityCheck() {
   if (!industry) { alert('Please enter an industry / focus area.'); return; }
   if (!location) { alert('Please enter a location.'); return; }
 
+  const eligToken = authToken();
+  if (!eligToken) { alert('Sign in to run an eligibility check.'); if (window.netlifyIdentity) window.netlifyIdentity.open(); return; }
+
   eligibilityInFlight = true;
   btn.disabled = true;
   btn.innerHTML = '<span class="spinner"></span> Analyzing...';
@@ -1412,7 +1326,7 @@ async function runEligibilityCheck() {
   try {
     const res = await fetch('/.netlify/functions/check-eligibility', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + eligToken },
       body: JSON.stringify({
         profile: { orgType, stage, industry, location, employees },
         grantName,
@@ -1469,12 +1383,16 @@ function showEligibilityError(message) {
 
 
 function buildEligibilityText(data, grantName) {
+  const band = pursuitBand(data.score, data.checks);
   const lines = [
     grantName || 'Grant Analysis',
     `Verdict: ${data.verdict}`,
     `Match score: ${data.score}/100`,
+    `Pursuit guidance: ${band.label}`,
     '',
     data.summary,
+    '',
+    band.text,
     '',
     'Requirement breakdown'
   ];
@@ -1502,10 +1420,39 @@ async function copyEligibilityResult() {
   }
 }
 
+// Pursuit gauge: the score is a fit estimate, not a win probability, so it is
+// read in bands, not as a pass/fail line. Defaults: 80+ strong, 60-79 moderate,
+// below 60 weak. A hard "no" on any requirement is surfaced first — a score
+// never overrides an unmet requirement. Tune the cutoffs once real win/loss
+// data exists.
+function pursuitBand(score, checks) {
+  const unmet = (checks || []).filter(c => c && c.status === 'no');
+  if (unmet.length) {
+    const names = unmet.slice(0, 3).map(c => c.requirement).join('; ');
+    return {
+      cls: 'weak',
+      label: 'Has unmet requirements \u2014 review first',
+      text: 'This grant lists ' + unmet.length + ' requirement' + (unmet.length === 1 ? '' : 's') +
+        ' your profile does not meet (' + names + (unmet.length > 3 ? '; \u2026' : '') +
+        '). A score cannot override a hard no \u2014 clear these before spending effort here.'
+    };
+  }
+  if (score >= 80) {
+    return { cls: 'strong', label: 'Strong fit \u2014 worth pursuing',
+      text: 'Your profile aligns with the stated requirements. Prioritize this application.' };
+  }
+  if (score >= 60) {
+    return { cls: 'moderate', label: 'Moderate fit \u2014 pursue selectively',
+      text: 'Worth an application if you can close the flagged gaps, or if the award size justifies the effort.' };
+  }
+  return { cls: 'weak', label: 'Weak fit \u2014 deprioritize',
+    text: 'Your effort is probably better spent on stronger fits. Pursue only for strategic reasons.' };
+}
+
 function renderEligibilityResult(data, grantName, savedAt) {
   const resultBox = document.getElementById('eligibility-result');
-  const verdictClass = data.verdict === 'Likely Eligible' ? 'eligible' : 'review';
-  const verdictDot = data.verdict === 'Likely Eligible' ? '●' : '◐';
+  const verdictClass = data.verdict === 'Likely Eligible' ? 'eligible' : data.verdict === 'Ineligible' ? 'ineligible' : 'review';
+  const verdictDot = data.verdict === 'Likely Eligible' ? '●' : data.verdict === 'Ineligible' ? '✕' : '◐';
 
   const checksHtml = data.checks.map(check => {
     const icon = check.status === 'yes' ? '✓' : check.status === 'no' ? '✗' : '~';
@@ -1545,6 +1492,12 @@ function renderEligibilityResult(data, grantName, savedAt) {
       </div>
     </div>
 
+    <div class="pursuit-band ${pursuitBand(data.score, data.checks).cls}">
+      <div>
+        <div class="pb-label">${escapeHTML(pursuitBand(data.score, data.checks).label)}</div>
+        <div style="margin-top:4px;color:var(--muted)">${escapeHTML(pursuitBand(data.score, data.checks).text)}</div>
+      </div>
+    </div>
     <div style="font-family:'DM Mono',monospace;font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--gold);margin-bottom:10px">
       Requirement Breakdown
     </div>
@@ -1619,7 +1572,8 @@ function renderGrantCard(grant) {
   const amount = Number.isFinite(amountNumber) && amountNumber > 0
     ? `$${amountNumber.toLocaleString()}`
     : 'Amount TBD';
-  const deadline = grant.closeDate || 'Open';
+  const isForecast = /forecast/i.test(grant.oppStatus || '');
+  const deadline = grant.closeDate || (isForecast ? 'Not yet open' : 'Open');
   const agency = grant.agencyName || 'Federal Agency';
   const title = grant.opportunityTitle || grant.title || 'Federal Grant Opportunity';
   const desc = grant.synopsis || grant.description || 'See Grants.gov for details.';
@@ -1632,6 +1586,7 @@ function renderGrantCard(grant) {
       <span class="tag agency">🏛 ${escapeHTML(agency)}</span>
       <span class="tag amount">💰 ${escapeHTML(amount)}</span>
       <span class="tag deadline">⏱ ${escapeHTML(deadline)}</span>
+      ${isForecast ? `<span class="tag">Forecasted</span>` : ''}
       ${number ? `<span class="tag">${escapeHTML(number)}</span>` : ''}
     </div>
     <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
@@ -1642,6 +1597,89 @@ function renderGrantCard(grant) {
   </div>`;
 }
 
+
+let lastAwards = [];
+
+async function searchAwards() {
+  const btn = document.getElementById('award-btn');
+  const box = document.getElementById('award-results');
+  const query = document.getElementById('award-query').value.trim();
+  const state = document.getElementById('award-state').value.trim().toUpperCase();
+  const sort = document.getElementById('award-sort').value;
+
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> Fetching...';
+  box.innerHTML = '<div class="loading-row"><span class="spinner"></span> Searching federal award history...</div>';
+
+  try {
+    const res = await fetch('/.netlify/functions/award-history', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ keyword: query || 'health', rows: 10, sortBy: sort, state })
+    });
+
+    const data = await res.json().catch(() => null);
+    if (res.status === 429) {
+      throw new Error('Too many requests. Wait about a minute, then try again.');
+    }
+    if (!res.ok || !data || !Array.isArray(data.awards)) {
+      throw new Error(data?.error || 'Award search request failed.');
+    }
+
+    lastAwards = data.awards.map((a, i) => ({ ...a, _index: i }));
+    if (!lastAwards.length) {
+      box.innerHTML = '<div class="empty-state"><div class="icon">📭</div><p>No awards found. Try different keywords.</p></div>';
+    } else {
+      box.innerHTML =
+        `<div class="results-header">
+          <div style="font-family:'Playfair Display',serif;font-size:18px;color:var(--cream)">${lastAwards.length} Award${lastAwards.length !== 1 ? 's' : ''} Found</div>
+          <div class="results-count">via USAspending</div>
+        </div>` +
+        lastAwards.map(renderAwardCard).join('');
+    }
+  } catch (err) {
+    box.innerHTML = `<div class="error-box">\u26A0 ${escapeHTML(err.message || 'Award search is temporarily unavailable. Please try again.')}</div>`;
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '\uD83C\uDFC6 Search Award History';
+  }
+}
+
+function renderAwardCard(a) {
+  const amount = Number.isFinite(a.awardAmount) && a.awardAmount > 0
+    ? '$' + a.awardAmount.toLocaleString()
+    : 'Amount TBD';
+  const period = [a.startDate, a.endDate].filter(Boolean).join(' \u2192 ') || 'Dates TBD';
+  return `<div class="grant-card">
+    <div class="grant-card-title">${escapeHTML(a.recipientName)}</div>
+    <div class="grant-desc">${escapeHTML(a.description)}</div>
+    <div class="grant-meta">
+      <span class="tag amount">\uD83D\uDCB0 ${escapeHTML(amount)}</span>
+      <span class="tag agency">\uD83C\uDFDB ${escapeHTML(a.agencyName)}</span>
+      ${a.subAgency ? `<span class="tag agency">${escapeHTML(a.subAgency)}</span>` : ''}
+      <span class="tag deadline">\uD83D\uDCC5 ${escapeHTML(period)}</span>
+      ${a.assistanceListing ? `<span class="tag">AL ${escapeHTML(a.assistanceListing)}</span>` : ''}
+      ${a.awardId ? `<span class="tag">${escapeHTML(a.awardId)}</span>` : ''}
+    </div>
+    <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
+      <button class="btn-ghost" onclick="saveAwardFromCard(${a._index})">Save</button>
+    </div>
+  </div>`;
+}
+
+function saveAwardFromCard(index) {
+  const a = lastAwards[index];
+  if (!a) return;
+  saveGrant({
+    id: 'award-' + String(a.awardId || a.recipientName).slice(0, 80),
+    title: (a.recipientName || 'Federal award') + ' \u2014 ' + (a.agencyName || ''),
+    agency: a.agencyName || '',
+    number: a.awardId || '',
+    closeDate: a.endDate || '',
+    amount: Number.isFinite(a.awardAmount) && a.awardAmount > 0 ? '$' + a.awardAmount.toLocaleString() : '',
+    source: 'award-history'
+  });
+}
 
 function authToken() {
   const user = window.netlifyIdentity && window.netlifyIdentity.currentUser();
@@ -1666,7 +1704,62 @@ async function loadSavedGrants() {
   const data = await res.json().catch(() => ({}));
   const grants = Array.isArray(data.grants) ? data.grants : [];
   window.__savedGrants = grants;
+  await loadOutcomes();
   renderSavedGrants(grants);
+}
+
+async function loadOutcomes() {
+  const map = {};
+  try {
+    const res = await fetch('/.netlify/functions/outcomes', { headers: { Authorization: 'Bearer ' + authToken() } });
+    if (res.ok) {
+      const data = await res.json().catch(() => ({}));
+      for (const o of (data.outcomes || [])) {
+        if (o && o.id) map[o.id] = o;
+      }
+    }
+  } catch {}
+  window.__outcomes = map;
+}
+
+function outcomeStatus(id) {
+  const o = window.__outcomes && window.__outcomes[id];
+  return (o && o.status) || 'saved';
+}
+
+function outcomeStats() {
+  const map = window.__outcomes || {};
+  let applied = 0, won = 0, total = 0;
+  for (const id of Object.keys(map)) {
+    const o = map[id] || {};
+    if (o.status === 'applied' || o.status === 'won' || o.status === 'lost') applied++;
+    if (o.status === 'won') { won++; if (o.awardAmount) total += o.awardAmount; }
+  }
+  return { applied, won, total };
+}
+
+async function setOutcome(id, status) {
+  if (!authToken()) {
+    if (window.netlifyIdentity) window.netlifyIdentity.open();
+    renderSavedGrants(window.__savedGrants || []);
+    return;
+  }
+  let awardAmount = '';
+  if (status === 'won') {
+    awardAmount = prompt('Award amount in dollars (optional):') || '';
+  }
+  try {
+    const res = await fetch('/.netlify/functions/outcomes', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + authToken() },
+      body: JSON.stringify({ id, status, awardAmount })
+    });
+    if (!res.ok) alert('Could not save that update. Try again.');
+  } catch {
+    alert('Could not save that update. Try again.');
+  }
+  await loadOutcomes();
+  renderSavedGrants(window.__savedGrants || []);
 }
 
 function filterSavedGrants() {
@@ -1682,7 +1775,14 @@ function renderSavedGrants(grants) {
     box.innerHTML = '<div class="empty-state"><div class="icon">📌</div><p>No saved grants yet.</p></div>';
     return;
   }
-  box.innerHTML = grants.map(g => `
+  const st = outcomeStats();
+  const statsHtml = (st.applied || st.won)
+    ? `<div class="tip-box">Applied ${st.applied} · Won ${st.won}${st.total ? ' · $' + st.total.toLocaleString() + ' awarded' : ''}</div>`
+    : '';
+  box.innerHTML = statsHtml + grants.map(g => {
+    const cur = outcomeStatus(g.id);
+    const opt = (v, label) => `<option value="${v}"${cur === v ? ' selected' : ''}>${label}</option>`;
+    return `
     <div class="grant-card">
       <div class="grant-card-title">${escapeHTML(g.title)}</div>
       <div class="grant-meta">
@@ -1690,10 +1790,18 @@ function renderSavedGrants(grants) {
         ${g.closeDate ? `<span class="tag deadline">⏱ ${escapeHTML(g.closeDate)}</span>` : ''}
         ${g.number ? `<span class="tag">${escapeHTML(g.number)}</span>` : ''}
       </div>
-      <div style="display:flex;gap:8px;margin-top:12px">
-        <button class="btn-ghost" onclick="removeSavedGrant('${escapeHTML(g.id)}')">Remove</button>
+      <div style="display:flex;gap:8px;margin-top:12px;align-items:center;flex-wrap:wrap">
+        <button class="btn-ghost remove-saved-btn" data-id="${escapeHTML(g.id)}">Remove</button>
+        <select class="outcome-select" data-id="${escapeHTML(g.id)}" aria-label="Track outcome" style="width:auto;margin-bottom:0">
+          ${opt('saved', 'Saved')}
+          ${opt('applied', 'Applied')}
+          ${opt('won', 'Won')}
+          ${opt('lost', 'Lost')}
+          ${opt('abandoned', 'Abandoned')}
+        </select>
       </div>
-    </div>`).join('');
+    </div>`;
+  }).join('');
 }
 
 async function saveGrant(grant) {
@@ -1750,6 +1858,36 @@ async function removeSavedGrant(id) {
   });
   loadSavedGrants();
 }
+
+// Saved-grants "Remove" button: handled via delegation reading data-id,
+// rather than interpolating the id into an onclick="" string. Interpolating
+// into onclick is unsafe even with escapeHTML(), because the browser decodes
+// HTML entities in an attribute's value *before* that value is parsed as
+// JavaScript — so an escaped quote (&#39;) still decodes back to a literal
+// quote at the point the onclick handler runs, letting stored grant data
+// break out of the intended string and execute as script.
+document.getElementById('saved-results')?.addEventListener('click', (event) => {
+  const btn = event.target.closest('.remove-saved-btn');
+  if (!btn) return;
+  removeSavedGrant(btn.dataset.id);
+});
+
+// Florida grant buttons: delegated, reading data-id — same reason as the
+// saved-grants Remove button above (never interpolate ids into onclick).
+document.getElementById('florida-results')?.addEventListener('click', (event) => {
+  const checkBtn = event.target.closest('.florida-check-btn');
+  if (checkBtn) { useFloridaGrant(checkBtn.dataset.id); return; }
+  const saveBtn = event.target.closest('.florida-save-btn');
+  if (saveBtn) saveFloridaGrant(saveBtn.dataset.id);
+});
+
+// Outcome tracking: delegated change listener — the selects re-render with
+// the card list, so the handler lives on the parent.
+document.getElementById('saved-results')?.addEventListener('change', (event) => {
+  const sel = event.target.closest('.outcome-select');
+  if (!sel) return;
+  setOutcome(sel.dataset.id, sel.value);
+});
 
 loadProfile();
   if (window.netlifyIdentity) {
