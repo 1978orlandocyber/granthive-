@@ -1141,6 +1141,7 @@ function saveFloridaGrant(id) {
     agency: grant.agency,
     number: 'Florida',
     closeDate: grant.closeDate,
+    deadline: grant.deadline || '',
     amount: grant.amount,
     source: 'florida'
   });
@@ -1170,7 +1171,7 @@ function renderDeadlines() {
   const today = new Date(); today.setHours(0, 0, 0, 0);
   let items = [];
   for (const g of grants) {
-    const d = parseCloseDate(g.closeDate);
+    const d = parseCloseDate(g.deadline || g.closeDate);
     if (!d || d < today) continue;
     items.push({ date: d, title: g.title || 'Saved grant', source: g.source || '', agency: g.agency || '' });
   }
