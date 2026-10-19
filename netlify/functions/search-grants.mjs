@@ -93,7 +93,11 @@ async function handler(event) {
     }
   }
 
-  const keyword = String(input.keyword || input.query || 'business').trim().slice(0, 120) || 'business';
+  // An explicitly empty keyword is a broad "what's out there" query (used by the Calendar's
+  // closing-soon list). An omitted keyword keeps the historical 'business' default.
+  const keyword = (input.keyword !== undefined || input.query !== undefined)
+    ? String(input.keyword ?? input.query ?? '').slice(0, 120)
+    : 'business';
   const rows = clampInt(input.rows || input.limit, 10, 1, MAX_ROWS);
   const sortBy = ALLOWED_SORTS.has(input.sortBy) ? input.sortBy : 'closeDate';
   const elig = input.eligibilities || input.eligibility || '';
