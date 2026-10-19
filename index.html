@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<link rel="icon" href="/logo.svg" type="image/svg+xml" sizes="32x32">
+<link rel="icon" href="/logo.png" type="image/png">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>GrantHive — AI Grant Eligibility and Grant Search</title>
 <meta name="description" content="GrantHive helps organizations check grant eligibility with AI and search live federal opportunities from Grants.gov.">
@@ -581,6 +581,7 @@
   #welcome-overlay[hidden] { display: none; }
   .welcome-card { max-width: 440px; text-align: center; background: var(--surface2); border: 1px solid rgba(201,168,76,0.4); border-radius: 20px; padding: 36px 30px; }
   .welcome-brand { color: var(--gold); font-weight: 800; font-size: 14px; letter-spacing: 4px; text-transform: uppercase; }
+  .welcome-logo { width: 112px; height: auto; margin-bottom: 10px; }
   .welcome-card h2 { font-size: 30px; margin: 14px 0 10px; color: var(--cream); }
   .welcome-card p { color: var(--muted); font-size: 15px; line-height: 1.6; }
   .welcome-steps { text-align: left; margin: 22px 0; padding: 0; list-style: none; }
@@ -640,6 +641,7 @@
 </div>
 <div id="welcome-overlay" hidden>
   <div class="welcome-card">
+    <img class="welcome-logo" src="/logo.png" alt="GrantHive logo">
     <div class="welcome-brand">GrantHive</div>
     <h2>Know before you apply.</h2>
     <p>GrantHive helps small organizations find grants worth pursuing — checking eligibility with AI before you spend hours applying.</p>
@@ -653,7 +655,7 @@
 </div>
 
 <header>
-  <img class="logo" src="/logo.svg" alt="GrantHive" width="64" height="64">
+  <img class="logo" src="/logo.png" alt="GrantHive" width="64" height="64">
   <h1>GrantHive</h1>
   <button class="btn-ghost" id="account-btn" onclick="openAccount()">Sign in</button>
 </header>
