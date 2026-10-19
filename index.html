@@ -2179,6 +2179,7 @@ function renderAwardCard(a) {
     </div>
     <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
       <button class="btn-ghost" onclick="saveAwardFromCard(${a._index})">Save</button>
+      ${a.awardKey ? `<a class="btn-ghost" style="text-decoration:none" href="https://www.usaspending.gov/award/${encodeURIComponent(a.awardKey)}/" target="_blank" rel="noopener">View on USAspending</a>` : ''}
     </div>
   </div>`;
 }
