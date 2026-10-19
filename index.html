@@ -575,6 +575,7 @@
   .dl-meta { font-size: 12px; color: var(--muted); margin-top: 2px; }
   .dl-when { flex-shrink: 0; text-align: right; font-size: 12px; color: var(--muted); line-height: 1.4; }
   .dl-when.urgent { color: var(--gold-light); font-weight: 700; }
+  .deadline-row .btn-ghost { flex-shrink: 0; }
 
   /* ---- Welcome overlay ---- */
   #welcome-overlay { position: fixed; inset: 0; z-index: 300; display: flex; align-items: center; justify-content: center; background: rgba(4,8,7,0.94); padding: 24px; }
@@ -942,13 +943,19 @@
   <div class="section-title">Grant Calendar</div>
   <p class="section-sub">A planning guide for the year. It covers federal, state, city, county, foundation, and corporate funding. Not only Florida.</p>
   <div class="tip-box">These months are a guide, not a rule. Federal and state grants open all year. Use the calendar to decide where to look, then open the matching list.</div>
-  <div class="deadlines-head">Upcoming deadlines</div>
+  <div class="deadlines-head">Your upcoming deadlines</div>
   <div class="chip-row" id="deadline-chips">
     <button class="chip active" data-f="all">All</button>
     <button class="chip" data-f="federal">Federal</button>
     <button class="chip" data-f="florida">Florida</button>
   </div>
   <div id="deadlines-list"></div>
+  <div class="deadlines-head">Open now — Florida</div>
+  <p class="section-sub">Florida grants accepting applications right now, soonest deadline first.</p>
+  <div id="opennow-florida"></div>
+  <div class="deadlines-head">Closing soon — Federal</div>
+  <p class="section-sub">Live federal grants with the nearest deadlines.</p>
+  <div id="opennow-federal"></div>
   <div class="calendar-grid">
     <div class="month-card" data-month="1">
       <div class="month-name">January</div>
@@ -1258,7 +1265,7 @@ function renderDeadlines() {
   items = items.slice(0, 20);
   document.querySelectorAll('#deadline-chips .chip').forEach(ch => ch.classList.toggle('active', ch.dataset.f === deadlineFilter));
   if (!items.length) {
-    box.innerHTML = '<div class="empty-state"><div class="icon">📅</div><p>No upcoming deadlines yet. Save grants from Federal search and their deadlines will show up here.</p></div>';
+    box.innerHTML = '<div class="empty-state"><div class="icon">📅</div><p>None of your saved grants have upcoming deadlines. Save a grant from Federal or Florida search and its deadline will show up here.</p></div>';
     return;
   }
   const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
@@ -1275,6 +1282,107 @@ function renderDeadlines() {
   }).join('');
 }
 
+async function ensureFloridaGrants() {
+  if (!floridaGrants.length) {
+    try {
+      const res = await fetch('/.netlify/functions/florida-grants');
+      const data = await res.json().catch(() => ({}));
+      if (Array.isArray(data.grants)) floridaGrants = data.grants;
+    } catch {}
+  }
+  return floridaGrants;
+}
+
+let closingSoonFederal = [];
+
+async function renderOpenNow() {
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+
+  // --- Florida: open or rolling, soonest deadline first ---
+  const flBox = document.getElementById('opennow-florida');
+  if (flBox && !flBox.dataset.done) {
+    flBox.innerHTML = '<div class="loading-row"><span class="spinner"></span> Checking what\u2019s open...</div>';
+    const grants = await ensureFloridaGrants();
+    const dated = [], rolling = [];
+    for (const g of grants) {
+      const d = g.deadline ? parseCloseDate(g.deadline) : null;
+      if (d && d >= today) dated.push({ g, d });
+      else if (!d && /rolling/i.test(g.closeDate || '')) rolling.push({ g, d: null });
+    }
+    dated.sort((a, b) => a.d - b.d);
+    const items = dated.concat(rolling).slice(0, 10);
+    flBox.dataset.done = '1';
+    if (!items.length) {
+      flBox.innerHTML = '<div class="empty-state"><div class="icon">\uD83C\uDF34</div><p>No Florida grants are open right now. Check back soon.</p></div>';
+    } else {
+      flBox.innerHTML = items.map(({ g, d }) => {
+        const days = d ? Math.round((d - today) / 86400000) : null;
+        const urgent = days !== null && days <= 14 ? ' urgent' : '';
+        return '<div class="deadline-row">' +
+          '<div class="dl-body"><div class="dl-title">' + escapeHTML(g.title) + '</div>' +
+          '<div class="dl-meta">\uD83D\uDCB0 ' + escapeHTML(g.amount || 'Amount varies') + (g.agency ? ' \u00B7 ' + escapeHTML(g.agency) : '') + '</div></div>' +
+          '<div class="dl-when' + urgent + '">' + (d ? 'Closes<br>' + months[d.getMonth()] + ' ' + d.getDate() : 'Open<br>now') + '</div>' +
+          '<button class="btn-ghost florida-save-btn" data-id="' + escapeHTML(g.id) + '">Save</button></div>';
+      }).join('');
+    }
+  }
+
+  // --- Federal: nearest deadlines, live from Grants.gov ---
+  const fedBox = document.getElementById('opennow-federal');
+  if (fedBox && !fedBox.dataset.done) {
+    fedBox.innerHTML = '<div class="loading-row"><span class="spinner"></span> Checking federal deadlines...</div>';
+    try {
+      const res = await fetch('/.netlify/functions/search-grants', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ keyword: '', rows: 30, sortBy: 'closeDate' })
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !Array.isArray(data.grants)) throw new Error('bad response');
+      closingSoonFederal = data.grants
+        .map(g => ({ g, d: parseCloseDate(g.closeDate) }))
+        .filter(x => x.d && x.d >= today)
+        .slice(0, 5);
+      if (!closingSoonFederal.length) throw new Error('empty');
+      fedBox.dataset.done = '1';
+      fedBox.innerHTML = closingSoonFederal.map((x, i) => {
+        const g = x.g, d = x.d;
+        const days = Math.round((d - today) / 86400000);
+        const urgent = days <= 14 ? ' urgent' : '';
+        const when = days === 0 ? 'Today' : days === 1 ? 'Tomorrow' : months[d.getMonth()] + ' ' + d.getDate();
+        const ceiling = Number(g.awardCeiling);
+        const amount = Number.isFinite(ceiling) && ceiling > 0 ? '$' + ceiling.toLocaleString() : 'Amount TBD';
+        return '<div class="deadline-row">' +
+          '<div class="dl-body"><div class="dl-title">' + escapeHTML(g.opportunityTitle || 'Federal grant') + '</div>' +
+          '<div class="dl-meta">\uD83D\uDCB0 ' + escapeHTML(amount) + (g.agencyName ? ' \u00B7 ' + escapeHTML(g.agencyName) : '') + '</div></div>' +
+          '<div class="dl-when' + urgent + '">Closes<br>' + when + '</div>' +
+          '<button class="btn-ghost" onclick="saveClosingSoon(' + i + ')">Save</button></div>';
+      }).join('') +
+      '<p class="section-sub"><a href="#" onclick="switchTab(\'grants\', event); return false;" style="color:var(--gold)">Search all federal grants \u2192</a></p>';
+    } catch {
+      fedBox.innerHTML = '<div class="empty-state"><div class="icon">\uD83C\uDFDB</div><p>Federal closing-soon list is unavailable right now. Try the Federal tab.</p></div>';
+    }
+  }
+}
+
+function saveClosingSoon(i) {
+  const x = closingSoonFederal[i];
+  if (!x) return;
+  const g = x.g;
+  const ceiling = Number(g.awardCeiling);
+  saveGrant({
+    id: g.opportunityId || g.opportunityNumber || g.opportunityTitle,
+    title: g.opportunityTitle || 'Federal Grant',
+    agency: g.agencyName || '',
+    number: g.opportunityNumber || '',
+    opportunityId: g.opportunityId || '',
+    closeDate: g.closeDate || 'Open',
+    amount: Number.isFinite(ceiling) && ceiling > 0 ? '$' + ceiling.toLocaleString() : 'Amount TBD',
+    source: 'federal'
+  });
+}
+
 function switchTab(id, evt) {
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
   document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
@@ -1284,7 +1392,7 @@ function switchTab(id, evt) {
   if (panel) panel.classList.add('active');
   if (id === 'saved') loadSavedGrants();
   if (id === 'florida') loadFloridaGrants();
-  if (id === 'calendar') { markCurrentMonth(); renderDeadlines(); }
+  if (id === 'calendar') { markCurrentMonth(); renderDeadlines(); renderOpenNow(); }
 }
 
 
