@@ -587,6 +587,22 @@
   .welcome-steps { text-align: left; margin: 22px 0; padding: 0; list-style: none; }
   .welcome-steps li { display: flex; gap: 12px; margin-bottom: 12px; font-size: 14px; color: var(--cream); align-items: flex-start; }
   .welcome-steps .n { flex-shrink: 0; width: 26px; height: 26px; border-radius: 50%; background: var(--gold); color: #1a1405; font-weight: 800; font-size: 13px; display: flex; align-items: center; justify-content: center; }
+
+  /* ---- FAQ accordion ---- */
+  .faq-item { border: 1px solid var(--border); border-radius: 12px; margin-bottom: 10px; background: var(--surface2); overflow: hidden; }
+  .faq-q { width: 100%; background: none; border: none; color: var(--cream); font-size: 15px; font-weight: 700; text-align: left; padding: 16px 18px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; gap: 12px; font-family: inherit; }
+  .faq-chev { color: var(--gold); font-size: 22px; transition: transform 0.2s ease; flex-shrink: 0; line-height: 1; }
+  .faq-item.open .faq-chev { transform: rotate(90deg); }
+  .faq-a { max-height: 0; overflow: hidden; transition: max-height 0.25s ease; }
+  .faq-item.open .faq-a { max-height: 600px; }
+  .faq-a p { margin: 0; padding: 0 18px 18px; color: var(--muted); font-size: 14px; line-height: 1.65; }
+  .faq-a a { color: var(--gold); }
+  .legal-links { text-align: center; margin: 26px 0 8px; color: var(--muted); font-size: 14px; }
+  .legal-links a { color: var(--gold); }
+  .site-footer { text-align: center; padding: 26px 16px 40px; color: var(--muted); font-size: 13px; border-top: 1px solid var(--border); margin-top: 24px; }
+  .site-footer a { color: var(--gold); }
+  .auth-terms { font-size: 12px; color: var(--muted); text-align: center; margin: 14px 0 0; line-height: 1.5; }
+  .auth-terms a { color: var(--gold); }
 </style>
 </head>
 <body>
@@ -610,6 +626,7 @@
         </span>
         <p class="auth-hint" id="auth-hint">Longer is better — aim for 12+ characters.</p>
         <button type="submit" class="btn-gold" id="auth-submit">Log in</button>
+        <p class="auth-terms">By creating an account, you agree to our <a href="/terms.html" target="_blank" rel="noopener">Terms of Service</a> and <a href="/privacy.html" target="_blank" rel="noopener">Privacy Policy</a>.</p>
       </form>
       <button class="auth-link" id="auth-forgot">Forgot password?</button>
     </div>
@@ -674,6 +691,7 @@
   <div class="tab" onclick="switchTab('calendar', event)">Calendar</div>
   <div class="tab" onclick="switchTab('saved', event)">Saved</div>
   <div class="tab" onclick="switchTab('pro', event)">Pro</div>
+  <div class="tab" onclick="switchTab('faq', event)">FAQ</div>
 </div>
 
 <!-- ELIGIBILITY CHECKER -->
@@ -1051,6 +1069,60 @@
     <div class="empty-state"><div class="icon">📌</div><p>No saved grants yet. Save one from search or an eligibility result.</p></div>
   </div>
 </div>
+
+<!-- FAQ -->
+<div class="panel" id="panel-faq">
+  <div class="section-title">Common questions</div>
+  <p class="section-sub">Straight answers for grant seekers — nonprofit and for-profit.</p>
+  <div id="faq-list">
+    <div class="faq-item">
+      <button class="faq-q" aria-expanded="false">Can for-profit businesses get grants?<span class="faq-chev">›</span></button>
+      <div class="faq-a"><p>Yes, but they are rarer than nonprofit grants. Federal programs like SBIR/STTR fund small-business research and development, and Florida programs like CareerSource training grants support for-profits. Most foundation grants are nonprofit-only. On the Florida tab, filter by "For-profit" to see what is open to you.</p></div>
+    </div>
+    <div class="faq-item">
+      <button class="faq-q" aria-expanded="false">What does "501(c)(3) required" mean?<span class="faq-chev">›</span></button>
+      <div class="faq-a"><p>It is the IRS designation for tax-exempt nonprofit organizations. Many grants — especially from foundations — require it because it proves you are a recognized charitable organization. If you do not have it, look for grants open to for-profits, or ask the grantmaker whether fiscal sponsorship qualifies.</p></div>
+    </div>
+    <div class="faq-item">
+      <button class="faq-q" aria-expanded="false">What is the difference between a grant and a loan?<span class="faq-chev">›</span></button>
+      <div class="faq-a"><p>A grant does not have to be repaid; a loan does. That also makes grants far more competitive, with strict rules on how the money may be used. If anyone guarantees you a grant in exchange for a fee, walk away — that is a classic scam.</p></div>
+    </div>
+    <div class="faq-item">
+      <button class="faq-q" aria-expanded="false">Where does GrantHive's grant data come from?<span class="faq-chev">›</span></button>
+      <div class="faq-a"><p>Federal grants come live from Grants.gov. Past winners come from USAspending.gov, the official public record of federal spending. The Florida list is curated by our team, and every entry shows when it was last verified. We do not invent listings.</p></div>
+    </div>
+    <div class="faq-item">
+      <button class="faq-q" aria-expanded="false">Why did my eligibility score come back low?<span class="faq-chev">›</span></button>
+      <div class="faq-a"><p>The score measures fit between your organization and that grant's stated requirements — not your worthiness. Scores of 80 and above mean strong fit, 60–79 moderate, below 60 weak. If any single check came back "no" on a knockout requirement (like location or nonprofit status), the app flags it for review no matter the score. A low score means "don't spend 40 hours here," not "give up."</p></div>
+    </div>
+    <div class="faq-item">
+      <button class="faq-q" aria-expanded="false">What does "Not yet open" mean?<span class="faq-chev">›</span></button>
+      <div class="faq-a"><p>Some federal grants are forecasted — announced before applications open. We label them "Not yet open" so you can plan ahead instead of mistaking them for live opportunities.</p></div>
+    </div>
+    <div class="faq-item">
+      <button class="faq-q" aria-expanded="false">Do I have to pay to use GrantHive?<span class="faq-chev">›</span></button>
+      <div class="faq-a"><p>No. Everything you can do today stays free. We plan an optional Pro tier later (deadline reminders, new-grant alerts, unlimited checks), but it will be an add-on — never a gate on what you use now.</p></div>
+    </div>
+    <div class="faq-item">
+      <button class="faq-q" aria-expanded="false">Is my organization's data shared or sold?<span class="faq-chev">›</span></button>
+      <div class="faq-a"><p>Never. Your profile and saved grants live on your account only. Eligibility checks send your organization profile and the grant description to our AI provider to compute the score — that is the only data that leaves your account. See our <a href="/privacy.html">Privacy Policy</a> for the full details.</p></div>
+    </div>
+    <div class="faq-item">
+      <button class="faq-q" aria-expanded="false">I got a strong score — what do I do next?<span class="faq-chev">›</span></button>
+      <div class="faq-a"><p>Three things. First, open the official grant page and confirm the deadline and requirements yourself. Second, save the grant so its deadline appears on your Calendar. Third, start early — strong applications take weeks. The score gets you to the starting line faster; the application still wins it.</p></div>
+    </div>
+    <div class="faq-item">
+      <button class="faq-q" aria-expanded="false">I am a grant writer — can I use GrantHive for clients?<span class="faq-chev">›</span></button>
+      <div class="faq-a"><p>Yes. Run eligibility checks against each client's own organization profile, save their grants, and track applied, won, and lost per grant. Client workspaces for consultants are on our roadmap.</p></div>
+    </div>
+  </div>
+  <div class="legal-links"><a href="/terms.html">Terms of Service</a> &nbsp;·&nbsp; <a href="/privacy.html">Privacy Policy</a></div>
+</div>
+
+<footer class="site-footer">
+  GrantHive — Know before you apply.<br>
+  <a href="/terms.html">Terms</a> · <a href="/privacy.html">Privacy</a>
+</footer>
 
 <script>
 // ─── ESCAPE UTILITY ───
@@ -2195,6 +2267,20 @@ document.getElementById('florida-results')?.addEventListener('click', (event) =>
 
 // Outcome tracking: delegated change listener — the selects re-render with
 // the card list, so the handler lives on the parent.
+document.getElementById('faq-list').addEventListener('click', (e) => {
+  const btn = e.target.closest('.faq-q');
+  if (!btn) return;
+  const item = btn.closest('.faq-item');
+  const wasOpen = item.classList.contains('open');
+  document.querySelectorAll('#faq-list .faq-item.open').forEach(i => {
+    i.classList.remove('open');
+    i.querySelector('.faq-q').setAttribute('aria-expanded', 'false');
+  });
+  if (!wasOpen) {
+    item.classList.add('open');
+    btn.setAttribute('aria-expanded', 'true');
+  }
+});
 document.getElementById('deadline-chips').addEventListener('click', (event) => {
   const ch = event.target.closest('.chip');
   if (!ch) return;
@@ -2217,6 +2303,7 @@ setInterval(() => { if (GHAuth.session) GHAuth.token(); }, 5 * 60 * 1000);
 restoreLastSearch();
 restoreLastResult();
 showWelcomeIfNeeded();
+if (location.hash === '#faq') switchTab('faq');
 </script>
 </body>
 </html>
