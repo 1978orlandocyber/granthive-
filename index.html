@@ -508,10 +508,6 @@
     line-height: 1;
     padding: 4px;
   }
-  .netlify-identity-widget input[type="password"],
-  .netlify-identity-widget input[type="text"] {
-    padding-right: 36px;
-  }
 
   .calendar-grid {
     display: grid;
@@ -535,18 +531,126 @@
     font-size: 14px;
     color: var(--muted);
   }
-  .tabs { flex-wrap: wrap; }
-  .tab { font-size: 14px; }
+  .tabs { flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; padding: 16px 16px 0; scrollbar-width: none; }
+  .tabs::-webkit-scrollbar { display: none; }
+  .tab { font-size: 14px; flex-shrink: 0; white-space: nowrap; }
   @media (max-width: 640px) {
     .start-here { margin: 8px 16px 0; }
   }
 
   .pro-list { margin: 12px 0 16px 18px; color: var(--cream); }
   .pro-list li { margin: 6px 0; }
+
+  /* ---- Custom auth modal ---- */
+  .auth-modal { position: fixed; inset: 0; z-index: 200; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.72); padding: 20px; }
+  .auth-modal[hidden] { display: none; }
+  .auth-card { background: var(--surface2); border: 1px solid var(--border); border-radius: 16px; padding: 28px 28px 24px; width: 100%; max-width: 400px; position: relative; box-shadow: 0 24px 60px rgba(0,0,0,0.5); }
+  .auth-close { position: absolute; top: 10px; right: 14px; background: none; border: none; color: var(--muted); font-size: 26px; cursor: pointer; line-height: 1; }
+  .auth-tabs { display: flex; gap: 16px; margin-bottom: 8px; border-bottom: 1px solid var(--border); }
+  .auth-tab { background: none; border: none; color: var(--muted); font-size: 15px; font-weight: 700; padding: 10px 2px; cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; }
+  .auth-tab.active { color: var(--gold); border-bottom-color: var(--gold); }
+  .auth-card label { display: block; font-size: 13px; color: var(--muted); margin: 14px 0 6px; }
+  .auth-card input[type="email"], .auth-card input[type="password"], .auth-card input[type="text"] { width: 100%; padding: 12px 14px; border-radius: 10px; border: 1px solid var(--border); background: var(--surface); color: var(--cream); font-size: 15px; box-sizing: border-box; }
+  .pw-wrap { position: relative; display: block; }
+  .pw-wrap input { padding-right: 46px !important; }
+  .pw-wrap .pw-toggle { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); }
+  .auth-error { background: rgba(224,92,92,0.12); border: 1px solid rgba(224,92,92,0.4); color: #f0a3a3; padding: 10px 12px; border-radius: 10px; font-size: 14px; margin: 10px 0 0; }
+  .auth-info { background: rgba(201,168,76,0.1); border: 1px solid rgba(201,168,76,0.35); color: var(--gold-light); padding: 10px 12px; border-radius: 10px; font-size: 14px; margin: 10px 0 0; }
+  .auth-hint { font-size: 12px; color: var(--muted); margin: 8px 0 0; }
+  .btn-gold { width: 100%; margin-top: 18px; background: var(--gold); color: #1a1405; border: none; border-radius: 10px; padding: 13px; font-size: 15px; font-weight: 700; cursor: pointer; }
+  .btn-gold:disabled { opacity: 0.6; cursor: wait; }
+  .auth-link, .auth-back { display: block; margin: 14px auto 0; background: none; border: none; color: var(--muted); font-size: 14px; cursor: pointer; text-decoration: underline; }
+
+  /* ---- Upcoming deadlines ---- */
+  .deadlines-head { font-size: 18px; font-weight: 700; margin: 22px 0 10px; color: var(--cream); }
+  .chip-row { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
+  .chip { background: var(--surface); border: 1px solid var(--border); color: var(--muted); border-radius: 999px; padding: 8px 16px; font-size: 13px; font-weight: 600; cursor: pointer; }
+  .chip.active { background: var(--gold); border-color: var(--gold); color: #1a1405; }
+  .deadline-row { display: flex; align-items: center; gap: 14px; background: var(--surface2); border: 1px solid var(--border); border-radius: 12px; padding: 12px 14px; margin-bottom: 10px; }
+  .dl-date { flex-shrink: 0; width: 56px; height: 56px; border-radius: 12px; background: rgba(201,168,76,0.12); border: 1px solid rgba(201,168,76,0.35); display: flex; flex-direction: column; align-items: center; justify-content: center; }
+  .dl-date span { font-size: 11px; color: var(--gold); font-weight: 700; text-transform: uppercase; }
+  .dl-date strong { font-size: 20px; color: var(--cream); line-height: 1.1; }
+  .dl-body { flex: 1; min-width: 0; }
+  .dl-title { font-weight: 700; font-size: 15px; color: var(--cream); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .dl-meta { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .dl-when { flex-shrink: 0; text-align: right; font-size: 12px; color: var(--muted); line-height: 1.4; }
+  .dl-when.urgent { color: var(--gold-light); font-weight: 700; }
+
+  /* ---- Welcome overlay ---- */
+  #welcome-overlay { position: fixed; inset: 0; z-index: 300; display: flex; align-items: center; justify-content: center; background: rgba(4,8,7,0.94); padding: 24px; }
+  #welcome-overlay[hidden] { display: none; }
+  .welcome-card { max-width: 440px; text-align: center; background: var(--surface2); border: 1px solid rgba(201,168,76,0.4); border-radius: 20px; padding: 36px 30px; }
+  .welcome-brand { color: var(--gold); font-weight: 800; font-size: 14px; letter-spacing: 4px; text-transform: uppercase; }
+  .welcome-card h2 { font-size: 30px; margin: 14px 0 10px; color: var(--cream); }
+  .welcome-card p { color: var(--muted); font-size: 15px; line-height: 1.6; }
+  .welcome-steps { text-align: left; margin: 22px 0; padding: 0; list-style: none; }
+  .welcome-steps li { display: flex; gap: 12px; margin-bottom: 12px; font-size: 14px; color: var(--cream); align-items: flex-start; }
+  .welcome-steps .n { flex-shrink: 0; width: 26px; height: 26px; border-radius: 50%; background: var(--gold); color: #1a1405; font-weight: 800; font-size: 13px; display: flex; align-items: center; justify-content: center; }
 </style>
-<script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
 </head>
 <body>
+<div id="auth-modal" class="auth-modal" hidden>
+  <div class="auth-card" role="dialog" aria-modal="true" aria-labelledby="auth-title">
+    <button class="auth-close" id="auth-close" aria-label="Close sign-in">×</button>
+    <div id="auth-view-main">
+      <div class="auth-tabs" role="tablist">
+        <button class="auth-tab active" id="auth-tab-login" role="tab">Log in</button>
+        <button class="auth-tab" id="auth-tab-signup" role="tab">Sign up</button>
+      </div>
+      <div id="auth-error" class="auth-error" hidden></div>
+      <div id="auth-info" class="auth-info" hidden></div>
+      <form id="auth-form" novalidate>
+        <label for="auth-email">Email</label>
+        <input type="email" id="auth-email" autocomplete="email" required>
+        <label for="auth-password">Password</label>
+        <span class="pw-wrap">
+          <input type="password" id="auth-password" autocomplete="current-password" required>
+          <button type="button" class="pw-toggle" data-eye-for="auth-password" aria-label="Show password">👁</button>
+        </span>
+        <p class="auth-hint" id="auth-hint">Longer is better — aim for 12+ characters.</p>
+        <button type="submit" class="btn-gold" id="auth-submit">Log in</button>
+      </form>
+      <button class="auth-link" id="auth-forgot">Forgot password?</button>
+    </div>
+    <div id="auth-view-recover" hidden>
+      <div class="auth-tabs"><button class="auth-tab active">Reset password</button></div>
+      <div id="auth-recover-error" class="auth-error" hidden></div>
+      <div id="auth-recover-info" class="auth-info" hidden></div>
+      <form id="auth-recover-form" novalidate>
+        <label for="auth-recover-email">Email</label>
+        <input type="email" id="auth-recover-email" autocomplete="email" required>
+        <button type="submit" class="btn-gold">Send reset link</button>
+      </form>
+      <button class="auth-back" id="auth-back">← Back to log in</button>
+    </div>
+    <div id="auth-view-newpw" hidden>
+      <div class="auth-tabs"><button class="auth-tab active" id="auth-newpw-title">Choose a password</button></div>
+      <div id="auth-newpw-error" class="auth-error" hidden></div>
+      <form id="auth-newpw-form" novalidate>
+        <label for="auth-newpw">New password</label>
+        <span class="pw-wrap">
+          <input type="password" id="auth-newpw" autocomplete="new-password" required>
+          <button type="button" class="pw-toggle" data-eye-for="auth-newpw" aria-label="Show password">👁</button>
+        </span>
+        <p class="auth-hint">Longer is better — aim for 12+ characters.</p>
+        <button type="submit" class="btn-gold">Set password</button>
+      </form>
+    </div>
+  </div>
+</div>
+<div id="welcome-overlay" hidden>
+  <div class="welcome-card">
+    <div class="welcome-brand">GrantHive</div>
+    <h2>Know before you apply.</h2>
+    <p>GrantHive helps small organizations find grants worth pursuing — checking eligibility with AI before you spend hours applying.</p>
+    <ul class="welcome-steps">
+      <li><span class="n">1</span><span><strong>Search</strong> live federal grants, past winners, and Florida opportunities.</span></li>
+      <li><span class="n">2</span><span><strong>Check eligibility</strong> — AI screens one real grant against your organization.</span></li>
+      <li><span class="n">3</span><span><strong>Track</strong> what you save and what happens — applied, won, lost.</span></li>
+    </ul>
+    <button class="btn-gold" id="welcome-start">Get started</button>
+  </div>
+</div>
 
 <header>
   <img class="logo" src="/logo.svg" alt="GrantHive" width="64" height="64">
@@ -818,6 +922,13 @@
   <div class="section-title">Grant Calendar</div>
   <p class="section-sub">A planning guide for the year. It covers federal, state, city, county, foundation, and corporate funding. Not only Florida.</p>
   <div class="tip-box">These months are a guide, not a rule. Federal and state grants open all year. Use the calendar to decide where to look, then open the matching list.</div>
+  <div class="deadlines-head">Upcoming deadlines</div>
+  <div class="chip-row" id="deadline-chips">
+    <button class="chip active" data-f="all">All</button>
+    <button class="chip" data-f="federal">Federal</button>
+    <button class="chip" data-f="florida">Florida</button>
+  </div>
+  <div id="deadlines-list"></div>
   <div class="calendar-grid">
     <div class="month-card" data-month="1">
       <div class="month-name">January</div>
@@ -1043,6 +1154,48 @@ function markCurrentMonth() {
   });
 }
 
+let deadlineFilter = 'all';
+function parseCloseDate(s) {
+  if (!s || typeof s !== 'string') return null;
+  let m = s.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+  if (m) { const d = new Date(+m[3], +m[1] - 1, +m[2]); return isNaN(d) ? null : d; }
+  m = s.match(/(\d{4})-(\d{2})-(\d{2})/);
+  if (m) { const d = new Date(+m[1], +m[2] - 1, +m[3]); return isNaN(d) ? null : d; }
+  return null;
+}
+function renderDeadlines() {
+  const box = document.getElementById('deadlines-list');
+  if (!box) return;
+  const grants = window.__savedGrants || [];
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  let items = [];
+  for (const g of grants) {
+    const d = parseCloseDate(g.closeDate);
+    if (!d || d < today) continue;
+    items.push({ date: d, title: g.title || 'Saved grant', source: g.source || '', agency: g.agency || '' });
+  }
+  if (deadlineFilter !== 'all') items = items.filter(i => i.source === deadlineFilter);
+  items.sort((a, b) => a.date - b.date);
+  items = items.slice(0, 20);
+  document.querySelectorAll('#deadline-chips .chip').forEach(ch => ch.classList.toggle('active', ch.dataset.f === deadlineFilter));
+  if (!items.length) {
+    box.innerHTML = '<div class="empty-state"><div class="icon">📅</div><p>No upcoming deadlines yet. Save grants from Federal search and their deadlines will show up here.</p></div>';
+    return;
+  }
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  box.innerHTML = items.map(i => {
+    const days = Math.round((i.date - today) / 86400000);
+    const when = days === 0 ? 'Today' : days === 1 ? 'Tomorrow' : 'in ' + days + ' days';
+    const urgent = days <= 14 ? ' urgent' : '';
+    const src = i.source === 'federal' ? 'Federal' : i.source === 'florida' ? 'Florida' : 'Saved';
+    return '<div class="deadline-row">' +
+      '<div class="dl-date"><span>' + months[i.date.getMonth()] + '</span><strong>' + i.date.getDate() + '</strong></div>' +
+      '<div class="dl-body"><div class="dl-title">' + escapeHTML(i.title) + '</div>' +
+      '<div class="dl-meta">' + escapeHTML(src) + (i.agency ? ' · ' + escapeHTML(i.agency) : '') + '</div></div>' +
+      '<div class="dl-when' + urgent + '">Closes<br>' + when + '</div></div>';
+  }).join('');
+}
+
 function switchTab(id, evt) {
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
   document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
@@ -1052,7 +1205,7 @@ function switchTab(id, evt) {
   if (panel) panel.classList.add('active');
   if (id === 'saved') loadSavedGrants();
   if (id === 'florida') loadFloridaGrants();
-  if (id === 'calendar') markCurrentMonth();
+  if (id === 'calendar') { markCurrentMonth(); renderDeadlines(); }
 }
 
 
@@ -1171,50 +1324,207 @@ const PROFILE_KEY = 'granthive-profile';
 
 
 
-function attachPasswordEyes(root) {
-  (root || document).querySelectorAll('input[type="password"], input[type="text"][name="password"]').forEach(input => {
-    if (input.dataset.eye) return;
-    const parent = input.parentElement;
-    if (!parent) return;
-    input.dataset.eye = '1';
-    parent.style.position = 'relative';
-    const btn = document.createElement('button');
-    btn.type = 'button';
-    btn.className = 'pw-toggle';
-    btn.setAttribute('aria-label', 'Show password');
-    btn.textContent = '👁';
+/* ---- GrantHive auth: custom sign-in via Netlify Identity (GoTrue API) ---- */
+const IDENTITY_URL = '/.netlify/identity';
+const GH_AUTH_KEY = 'granthive-auth';
+
+const GHAuth = {
+  session: null,
+  _pendingToken: null,
+  load() {
+    try {
+      const s = JSON.parse(localStorage.getItem(GH_AUTH_KEY) || 'null');
+      if (s && s.access_token && s.expiresAt && s.expiresAt > Date.now()) { this.session = s; return; }
+      if (s && s.refresh_token) { this.session = s; this.refresh(); return; }
+    } catch {}
+    this.clear();
+  },
+  save(s) { this.session = s; try { localStorage.setItem(GH_AUTH_KEY, JSON.stringify(s)); } catch {} },
+  clear() { this.session = null; try { localStorage.removeItem(GH_AUTH_KEY); } catch {} },
+  token() {
+    const s = this.session;
+    if (!s || !s.access_token) return '';
+    if (s.expiresAt && s.expiresAt - Date.now() < 5 * 60 * 1000) this.refresh();
+    return s.access_token;
+  },
+  async api(path, opts) {
+    opts = opts || {};
+    const headers = Object.assign({ 'Content-Type': 'application/json' }, opts.headers || {});
+    const res = await fetch(IDENTITY_URL + path, { method: opts.method || 'GET', headers, body: opts.body });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.msg || data.error_description || data.error || 'Something went wrong. Try again.');
+    return data;
+  },
+  async login(email, password) {
+    const d = await this.api('/token?grant_type=password', { method: 'POST', body: JSON.stringify({ email, password }) });
+    this.save({ access_token: d.access_token, refresh_token: d.refresh_token, expiresAt: Date.now() + (d.expires_in || 3600) * 1000, email: (d.user && d.user.email) || email });
+  },
+  async signup(email, password) {
+    const u = await this.api('/signup', { method: 'POST', body: JSON.stringify({ email, password }) });
+    if (u.confirmed_at) { await this.login(email, password); return 'logged-in'; }
+    return 'confirm-email';
+  },
+  async recover(email) { await this.api('/recover', { method: 'POST', body: JSON.stringify({ email }) }); },
+  async logout() {
+    try {
+      const h = this.session && this.session.access_token ? { Authorization: 'Bearer ' + this.session.access_token } : {};
+      await this.api('/logout', { method: 'POST', headers: h });
+    } catch {}
+    this.clear();
+  },
+  async refresh() {
+    const s = this.session;
+    if (!s || !s.refresh_token) { this.clear(); setAccountLabel(); return; }
+    try {
+      const d = await this.api('/token?grant_type=refresh_token', { method: 'POST', body: JSON.stringify({ refresh_token: s.refresh_token }) });
+      this.save({ access_token: d.access_token, refresh_token: d.refresh_token || s.refresh_token, expiresAt: Date.now() + (d.expires_in || 3600) * 1000, email: s.email });
+    } catch { this.clear(); setAccountLabel(); }
+  },
+  openModal(view) {
+    const m = document.getElementById('auth-modal');
+    if (!m) return;
+    showAuthView(view === 'newpw' ? 'newpw' : 'main');
+    if (view !== 'newpw') setAuthMode(view === 'signup' ? 'signup' : 'login');
+    m.hidden = false;
+  },
+  closeModal() { const m = document.getElementById('auth-modal'); if (m) m.hidden = true; }
+};
+
+function showAuthView(name) {
+  document.getElementById('auth-view-main').hidden = name !== 'main';
+  document.getElementById('auth-view-recover').hidden = name !== 'recover';
+  document.getElementById('auth-view-newpw').hidden = name !== 'newpw';
+}
+function setAuthMode(mode) {
+  const login = mode === 'login';
+  document.getElementById('auth-tab-login').classList.toggle('active', login);
+  document.getElementById('auth-tab-signup').classList.toggle('active', !login);
+  document.getElementById('auth-submit').textContent = login ? 'Log in' : 'Create account';
+  document.getElementById('auth-password').setAttribute('autocomplete', login ? 'current-password' : 'new-password');
+  document.getElementById('auth-hint').style.display = login ? 'none' : '';
+  document.getElementById('auth-forgot').style.display = login ? '' : 'none';
+  hideAuthMsg();
+}
+function showAuthError(msg) { const e = document.getElementById('auth-error'); e.textContent = msg; e.hidden = false; document.getElementById('auth-info').hidden = true; }
+function showAuthInfo(msg) { const e = document.getElementById('auth-info'); e.textContent = msg; e.hidden = false; document.getElementById('auth-error').hidden = true; }
+function hideAuthMsg() { document.getElementById('auth-error').hidden = true; document.getElementById('auth-info').hidden = true; }
+
+function wireAuthUI() {
+  document.getElementById('auth-close').addEventListener('click', () => GHAuth.closeModal());
+  document.getElementById('auth-modal').addEventListener('click', e => { if (e.target.id === 'auth-modal') GHAuth.closeModal(); });
+  document.getElementById('auth-tab-login').addEventListener('click', () => setAuthMode('login'));
+  document.getElementById('auth-tab-signup').addEventListener('click', () => setAuthMode('signup'));
+  document.getElementById('auth-forgot').addEventListener('click', () => { showAuthView('recover'); });
+  document.getElementById('auth-back').addEventListener('click', () => { showAuthView('main'); setAuthMode('login'); });
+  document.querySelectorAll('[data-eye-for]').forEach(btn => {
     btn.addEventListener('click', () => {
+      const input = document.getElementById(btn.getAttribute('data-eye-for'));
       const show = input.type === 'password';
       input.type = show ? 'text' : 'password';
       btn.textContent = show ? '🙈' : '👁';
       btn.setAttribute('aria-label', show ? 'Hide password' : 'Show password');
     });
-    parent.appendChild(btn);
+  });
+  document.getElementById('auth-form').addEventListener('submit', async e => {
+    e.preventDefault();
+    hideAuthMsg();
+    const email = document.getElementById('auth-email').value.trim();
+    const password = document.getElementById('auth-password').value;
+    const isLogin = document.getElementById('auth-tab-login').classList.contains('active');
+    if (!email || !password) { showAuthError('Enter your email and password.'); return; }
+    const btn = document.getElementById('auth-submit');
+    btn.disabled = true;
+    try {
+      if (isLogin) {
+        await GHAuth.login(email, password);
+        GHAuth.closeModal();
+        setAccountLabel(); loadProfileFromAccount(); loadSavedGrants();
+      } else {
+        const r = await GHAuth.signup(email, password);
+        if (r === 'logged-in') {
+          GHAuth.closeModal();
+          setAccountLabel(); loadProfileFromAccount(); loadSavedGrants();
+        } else {
+          showAuthInfo('Account created — check your email for a confirmation link, then log in.');
+        }
+      }
+    } catch (err) { showAuthError(err.message); }
+    btn.disabled = false;
+  });
+  document.getElementById('auth-recover-form').addEventListener('submit', async e => {
+    e.preventDefault();
+    const email = document.getElementById('auth-recover-email').value.trim();
+    if (!email) return;
+    try {
+      await GHAuth.recover(email);
+      const i = document.getElementById('auth-recover-info');
+      i.textContent = 'If that email has an account, a reset link is on its way.';
+      i.hidden = false;
+    } catch (err) {
+      const x = document.getElementById('auth-recover-error');
+      x.textContent = err.message; x.hidden = false;
+    }
+  });
+  document.getElementById('auth-newpw-form').addEventListener('submit', async e => {
+    e.preventDefault();
+    const password = document.getElementById('auth-newpw').value;
+    const errBox = document.getElementById('auth-newpw-error');
+    errBox.hidden = true;
+    if (!password) { errBox.textContent = 'Choose a password.'; errBox.hidden = false; return; }
+    const p = GHAuth._pendingToken;
+    if (!p) { errBox.textContent = 'This link has expired. Request a new one.'; errBox.hidden = false; return; }
+    try {
+      await GHAuth.api('/verify', { method: 'POST', body: JSON.stringify({ token: p.token, type: p.type, password }) });
+      GHAuth._pendingToken = null;
+      showAuthView('main'); setAuthMode('login');
+      showAuthInfo(p.type === 'invite' ? 'Account activated — log in with your new password.' : 'Password set — log in with your new password.');
+    } catch (err) { errBox.textContent = err.message; errBox.hidden = false; }
+  });
+  document.getElementById('welcome-start').addEventListener('click', () => {
+    try { localStorage.setItem('granthive-welcomed', '1'); } catch {}
+    document.getElementById('welcome-overlay').hidden = true;
   });
 }
 
-const identityObserver = new MutationObserver(() => attachPasswordEyes(document));
-identityObserver.observe(document.documentElement, { childList: true, subtree: true });
-
-function openAccount() {
-  if (!window.netlifyIdentity) {
-    alert('Accounts are not enabled on this site yet.');
-    return;
+function handleAuthHash() {
+  const h = location.hash || '';
+  const m = h.match(/(confirmation_token|recovery_token|invite_token)=([^&]+)/);
+  if (!m) return;
+  try { history.replaceState(null, '', location.pathname + location.search); } catch {}
+  const kind = m[1];
+  if (kind === 'confirmation_token') {
+    GHAuth.api('/verify', { method: 'POST', body: JSON.stringify({ token: m[2], type: 'signup' }) })
+      .then(() => { GHAuth.openModal('login'); showAuthInfo('Email confirmed — log in to get started.'); })
+      .catch(() => { GHAuth.openModal('login'); showAuthError('That confirmation link is invalid or expired.'); });
+  } else {
+    GHAuth._pendingToken = { token: m[2], type: kind === 'invite_token' ? 'invite' : 'recovery' };
+    document.getElementById('auth-newpw-title').textContent = kind === 'invite_token' ? 'Accept your invite' : 'Choose a new password';
+    GHAuth.openModal('newpw');
   }
-  const user = window.netlifyIdentity.currentUser();
-  if (user) window.netlifyIdentity.logout();
-  else window.netlifyIdentity.open();
 }
 
-function setAccountLabel(user) {
+function showWelcomeIfNeeded() {
+  try { if (localStorage.getItem('granthive-welcomed')) return; } catch {}
+  const w = document.getElementById('welcome-overlay');
+  if (w) w.hidden = false;
+}
+
+function openAccount() {
+  if (GHAuth.session) {
+    GHAuth.logout().then(() => { setAccountLabel(); });
+  } else {
+    GHAuth.openModal('login');
+  }
+}
+
+function setAccountLabel() {
   const btn = document.getElementById('account-btn');
   if (!btn) return;
-  btn.textContent = user ? 'Sign out' : 'Sign in';
+  btn.textContent = GHAuth.session ? 'Sign out' : 'Sign in';
 }
 
 async function syncProfileToAccount() {
-  if (!window.netlifyIdentity || !window.netlifyIdentity.currentUser()) return;
-  const token = window.netlifyIdentity.currentUser().token?.access_token;
+  const token = authToken();
   if (!token) return;
   await fetch('/.netlify/functions/profile', {
     method: 'POST',
@@ -1230,8 +1540,7 @@ async function syncProfileToAccount() {
 }
 
 async function loadProfileFromAccount() {
-  if (!window.netlifyIdentity || !window.netlifyIdentity.currentUser()) return;
-  const token = window.netlifyIdentity.currentUser().token?.access_token;
+  const token = authToken();
   if (!token) return;
   const res = await fetch('/.netlify/functions/profile', { headers: { Authorization: 'Bearer ' + token } });
   if (!res.ok) return;
@@ -1311,7 +1620,7 @@ async function runEligibilityCheck() {
   if (!location) { alert('Please enter a location.'); return; }
 
   const eligToken = authToken();
-  if (!eligToken) { alert('Sign in to run an eligibility check.'); if (window.netlifyIdentity) window.netlifyIdentity.open(); return; }
+  if (!eligToken) { alert('Sign in to run an eligibility check.'); GHAuth.openModal('login'); return; }
 
   eligibilityInFlight = true;
   btn.disabled = true;
@@ -1682,13 +1991,12 @@ function saveAwardFromCard(index) {
 }
 
 function authToken() {
-  const user = window.netlifyIdentity && window.netlifyIdentity.currentUser();
-  return user && user.token ? user.token.access_token : '';
+  return GHAuth.token();
 }
 
 function requireSignIn() {
   if (authToken()) return true;
-  if (window.netlifyIdentity) window.netlifyIdentity.open();
+  GHAuth.openModal('login');
   return false;
 }
 
@@ -1706,6 +2014,7 @@ async function loadSavedGrants() {
   window.__savedGrants = grants;
   await loadOutcomes();
   renderSavedGrants(grants);
+  renderDeadlines();
 }
 
 async function loadOutcomes() {
@@ -1740,7 +2049,7 @@ function outcomeStats() {
 
 async function setOutcome(id, status) {
   if (!authToken()) {
-    if (window.netlifyIdentity) window.netlifyIdentity.open();
+    GHAuth.openModal('login');
     renderSavedGrants(window.__savedGrants || []);
     return;
   }
@@ -1883,6 +2192,12 @@ document.getElementById('florida-results')?.addEventListener('click', (event) =>
 
 // Outcome tracking: delegated change listener — the selects re-render with
 // the card list, so the handler lives on the parent.
+document.getElementById('deadline-chips').addEventListener('click', (event) => {
+  const ch = event.target.closest('.chip');
+  if (!ch) return;
+  deadlineFilter = ch.dataset.f;
+  renderDeadlines();
+});
 document.getElementById('saved-results')?.addEventListener('change', (event) => {
   const sel = event.target.closest('.outcome-select');
   if (!sel) return;
@@ -1890,13 +2205,15 @@ document.getElementById('saved-results')?.addEventListener('change', (event) => 
 });
 
 loadProfile();
-  if (window.netlifyIdentity) {
-    window.netlifyIdentity.on("init", user => { setAccountLabel(user); if (user) { loadProfileFromAccount(); loadSavedGrants(); } });
-    window.netlifyIdentity.on("login", user => { setAccountLabel(user); loadProfileFromAccount(); window.netlifyIdentity.close(); });
-    window.netlifyIdentity.on("logout", () => setAccountLabel(null));
-  }
+wireAuthUI();
+GHAuth.load();
+setAccountLabel();
+handleAuthHash();
+if (GHAuth.session) { loadProfileFromAccount(); loadSavedGrants(); }
+setInterval(() => { if (GHAuth.session) GHAuth.token(); }, 5 * 60 * 1000);
 restoreLastSearch();
 restoreLastResult();
+showWelcomeIfNeeded();
 </script>
 </body>
 </html>
