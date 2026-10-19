@@ -579,6 +579,11 @@
   .dl-tap { cursor: pointer; }
   .dl-actions { display: flex; gap: 8px; flex-shrink: 0; }
   .dl-actions .btn-ghost { padding: 8px 12px; font-size: 13px; }
+  .open-row { background: var(--surface2); border: 1px solid var(--border); border-radius: 12px; padding: 14px 16px; margin-bottom: 10px; }
+  .open-title { font-weight: 700; font-size: 15px; color: var(--cream); margin-bottom: 4px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .open-meta { font-size: 13px; color: var(--muted); line-height: 1.5; margin-bottom: 10px; }
+  .open-foot { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+  .open-foot .dl-when { text-align: left; }
 
   /* ---- Welcome overlay ---- */
   #welcome-overlay { position: fixed; inset: 0; z-index: 300; display: flex; align-items: center; justify-content: center; background: rgba(4,8,7,0.94); padding: 24px; }
@@ -1322,12 +1327,12 @@ async function renderOpenNow() {
       flBox.innerHTML = items.map(({ g, d }) => {
         const days = d ? Math.round((d - today) / 86400000) : null;
         const urgent = days !== null && days <= 14 ? ' urgent' : '';
-        return '<div class="deadline-row">' +
-          '<div class="dl-body"><div class="dl-title"><span class="dl-tap" onclick="useFloridaGrant(\'' + escapeHTML(g.id) + '\')">' + escapeHTML(g.title) + '</span></div>' +
-          '<div class="dl-meta">\uD83D\uDCB0 ' + escapeHTML(g.amount || 'Amount varies') + (g.agency ? ' \u00B7 ' + escapeHTML(g.agency) : '') + '</div></div>' +
-          '<div class="dl-when' + urgent + '">' + (d ? 'Closes<br>' + months[d.getMonth()] + ' ' + d.getDate() : 'Open<br>now') + '</div>' +
-          '<div class="dl-actions"><button class="btn-ghost" onclick="useFloridaGrant(\'' + escapeHTML(g.id) + '\')">Check</button>' +
-          '<button class="btn-ghost florida-save-btn" data-id="' + escapeHTML(g.id) + '">Save</button></div></div>';
+        return '<div class="open-row">' +
+          '<div class="open-title"><span class="dl-tap" onclick="useFloridaGrant(\'' + escapeHTML(g.id) + '\')">' + escapeHTML(g.title) + '</span></div>' +
+          '<div class="open-meta">\uD83D\uDCB0 ' + escapeHTML(g.amount || 'Amount varies') + (g.agency ? ' \u00B7 ' + escapeHTML(g.agency) : '') + '</div>' +
+          '<div class="open-foot"><span class="dl-when' + urgent + '">' + (d ? 'Closes ' + months[d.getMonth()] + ' ' + d.getDate() : 'Open now \u00B7 Rolling') + '</span>' +
+          '<span class="dl-actions"><button class="btn-ghost" onclick="useFloridaGrant(\'' + escapeHTML(g.id) + '\')">Check</button>' +
+          '<button class="btn-ghost florida-save-btn" data-id="' + escapeHTML(g.id) + '">Save</button></span></div></div>';
       }).join('');
     }
   }
@@ -1357,12 +1362,12 @@ async function renderOpenNow() {
         const when = days === 0 ? 'Today' : days === 1 ? 'Tomorrow' : months[d.getMonth()] + ' ' + d.getDate();
         const ceiling = Number(g.awardCeiling);
         const amount = Number.isFinite(ceiling) && ceiling > 0 ? '$' + ceiling.toLocaleString() : 'Amount TBD';
-        return '<div class="deadline-row">' +
-          '<div class="dl-body"><div class="dl-title"><span class="dl-tap" onclick="checkClosingSoon(' + i + ')">' + escapeHTML(g.opportunityTitle || 'Federal grant') + '</span></div>' +
-          '<div class="dl-meta">\uD83D\uDCB0 ' + escapeHTML(amount) + (g.agencyName ? ' \u00B7 ' + escapeHTML(g.agencyName) : '') + '</div></div>' +
-          '<div class="dl-when' + urgent + '">Closes<br>' + when + '</div>' +
-          '<div class="dl-actions"><button class="btn-ghost" onclick="checkClosingSoon(' + i + ')">Check</button>' +
-          '<button class="btn-ghost" onclick="saveClosingSoon(' + i + ')">Save</button></div></div>';
+        return '<div class="open-row">' +
+          '<div class="open-title"><span class="dl-tap" onclick="checkClosingSoon(' + i + ')">' + escapeHTML(g.opportunityTitle || 'Federal grant') + '</span></div>' +
+          '<div class="open-meta">\uD83D\uDCB0 ' + escapeHTML(amount) + (g.agencyName ? ' \u00B7 ' + escapeHTML(g.agencyName) : '') + '</div>' +
+          '<div class="open-foot"><span class="dl-when' + urgent + '">Closes ' + when + '</span>' +
+          '<span class="dl-actions"><button class="btn-ghost" onclick="checkClosingSoon(' + i + ')">Check</button>' +
+          '<button class="btn-ghost" onclick="saveClosingSoon(' + i + ')">Save</button></span></div></div>';
       }).join('') +
       '<p class="section-sub"><a href="#" onclick="switchTab(\'grants\', event); return false;" style="color:var(--gold)">Search all federal grants \u2192</a></p>';
     } catch {
