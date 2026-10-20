@@ -1,5 +1,7 @@
 import { getStore } from "@netlify/blobs";
 
+const MAX_RAW_BODY_LEN = 20000;
+
 function json(status, body) {
   return new Response(JSON.stringify(body), {
     status,
@@ -63,7 +65,11 @@ export default async function (req) {
   if (req.method === "GET") return json(200, { grants });
 
   if (req.method === "POST") {
-    const grant = cleanGrant(await req.json().catch(() => null));
+    const raw = await req.text().catch(() => "");
+    if (raw.length > MAX_RAW_BODY_LEN) return json(413, { error: "Request body is too large." });
+    let parsed = null;
+    try { parsed = JSON.parse(raw); } catch {}
+    const grant = cleanGrant(parsed);
     if (!grant) return json(400, { error: "A grant title is required." });
     const next = [grant, ...grants.filter(g => g.id !== grant.id)].slice(0, 100);
     await store.setJSON(user.id, next);
@@ -71,7 +77,10 @@ export default async function (req) {
   }
 
   if (req.method === "DELETE") {
-    const body = await req.json().catch(() => ({}));
+    const rawDel = await req.text().catch(() => "");
+    if (rawDel.length > MAX_RAW_BODY_LEN) return json(413, { error: "Request body is too large." });
+    let body = {};
+    try { body = JSON.parse(rawDel) || {}; } catch {}
     const id = String(body.id || "");
     if (id === "__all__") {
       await store.setJSON(user.id, []);
@@ -85,4 +94,7 @@ export default async function (req) {
   return json(405, { error: "Method not allowed." });
 }
 
-export const config = { path: "/.netlify/functions/saved-grants" };
+export const config = {
+  path: "/.netlify/functions/saved-grants",
+  rateLimit: { windowLimit: 30, windowSize: 60, aggregateBy: ["ip"] }
+};
