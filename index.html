@@ -554,6 +554,7 @@
   .pw-wrap { position: relative; display: block; }
   .pw-wrap input { padding-right: 46px !important; }
   .pw-wrap .pw-toggle { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); }
+  .pw-toggle svg { display: block; }
   .auth-error { background: rgba(224,92,92,0.12); border: 1px solid rgba(224,92,92,0.4); color: #f0a3a3; padding: 10px 12px; border-radius: 10px; font-size: 14px; margin: 10px 0 0; }
   .auth-info { background: rgba(201,168,76,0.1); border: 1px solid rgba(201,168,76,0.35); color: var(--gold-light); padding: 10px 12px; border-radius: 10px; font-size: 14px; margin: 10px 0 0; }
   .auth-hint { font-size: 12px; color: var(--muted); margin: 8px 0 0; }
@@ -631,7 +632,7 @@
         <label for="auth-password">Password</label>
         <span class="pw-wrap">
           <input type="password" id="auth-password" autocomplete="current-password" required>
-          <button type="button" class="pw-toggle" data-eye-for="auth-password" aria-label="Show password">👁</button>
+          <button type="button" class="pw-toggle" data-eye-for="auth-password" aria-label="Show password"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><path d="M14.12 14.12a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg></button>
         </span>
         <p class="auth-hint" id="auth-hint">Longer is better — aim for 12+ characters.</p>
         <button type="submit" class="btn-gold" id="auth-submit">Log in</button>
@@ -657,7 +658,7 @@
         <label for="auth-newpw">New password</label>
         <span class="pw-wrap">
           <input type="password" id="auth-newpw" autocomplete="new-password" required>
-          <button type="button" class="pw-toggle" data-eye-for="auth-newpw" aria-label="Show password">👁</button>
+          <button type="button" class="pw-toggle" data-eye-for="auth-newpw" aria-label="Show password"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><path d="M14.12 14.12a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg></button>
         </span>
         <p class="auth-hint">Longer is better — aim for 12+ characters.</p>
         <button type="submit" class="btn-gold">Set password</button>
@@ -1623,12 +1624,14 @@ function wireAuthUI() {
   document.getElementById('auth-tab-signup').addEventListener('click', () => setAuthMode('signup'));
   document.getElementById('auth-forgot').addEventListener('click', () => { showAuthView('recover'); });
   document.getElementById('auth-back').addEventListener('click', () => { showAuthView('main'); setAuthMode('login'); });
+  const EYE_OPEN = '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>';
+  const EYE_OFF = '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><path d="M14.12 14.12a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>';
   document.querySelectorAll('[data-eye-for]').forEach(btn => {
     btn.addEventListener('click', () => {
       const input = document.getElementById(btn.getAttribute('data-eye-for'));
       const show = input.type === 'password';
       input.type = show ? 'text' : 'password';
-      btn.textContent = show ? '🙈' : '👁';
+      btn.innerHTML = show ? EYE_OPEN : EYE_OFF;
       btn.setAttribute('aria-label', show ? 'Hide password' : 'Show password');
     });
   });
