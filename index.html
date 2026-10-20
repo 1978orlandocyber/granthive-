@@ -1214,6 +1214,7 @@ function renderFlorida() {
         <button class="btn-ghost florida-check-btn" data-id="${escapeHTML(g.id)}">Check eligibility</button>
         <button class="btn-ghost florida-save-btn" data-id="${escapeHTML(g.id)}">Save</button>
         <a class="btn-ghost" style="text-decoration:none" href="${g.url}" target="_blank" rel="noopener">Official page</a>
+        <button class="btn-ghost" data-url="${g.url}" onclick="copyGrantLink(this.dataset.url)">Copy link</button>
       </div>
     </div>`).join('');
 }
@@ -1283,7 +1284,7 @@ function renderDeadlines() {
     const when = days === 0 ? 'Today' : days === 1 ? 'Tomorrow' : 'in ' + days + ' days';
     const urgent = days <= 14 ? ' urgent' : '';
     const src = i.source === 'federal' ? 'Federal' : i.source === 'florida' ? 'Florida' : 'Saved';
-    return '<div class="deadline-row">' +
+    return '<div class="deadline-row dl-tap" onclick="switchTab(\'saved\')">' +
       '<div class="dl-date"><span>' + months[i.date.getMonth()] + '</span><strong>' + i.date.getDate() + '</strong></div>' +
       '<div class="dl-body"><div class="dl-title">' + escapeHTML(i.title) + '</div>' +
       '<div class="dl-meta">' + escapeHTML(src) + (i.agency ? ' · ' + escapeHTML(i.agency) : '') + '</div></div>' +
@@ -1385,6 +1386,25 @@ function checkClosingSoon(i) {
   document.getElementById('grant-desc').value = (g.synopsis || 'See Grants.gov for details.').slice(0, 8000);
   switchTab('eligibility');
   document.getElementById('grant-name').scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+async function copyGrantLink(url) {
+  if (!url) return;
+  try {
+    await navigator.clipboard.writeText(url);
+    alert('Link copied — paste it anywhere to share this grant.');
+  } catch {
+    prompt('Copy this link:', url);
+  }
+}
+
+function findSimilarGrants(i) {
+  const a = lastAwards[i];
+  if (!a) return;
+  const kw = String(a.description || a.recipientName || '').replace(/\s+/g, ' ').trim().slice(0, 100);
+  document.getElementById('search-query').value = kw;
+  switchTab('grants');
+  searchGrants();
 }
 
 function saveClosingSoon(i) {
@@ -2111,7 +2131,7 @@ function renderGrantCard(grant) {
     <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
       <button class="btn-ghost" onclick="useGrant(${grant._index})">Check eligibility</button>
       <button class="btn-ghost" onclick="saveGrantFromCard(${grant._index})">Save</button>
-      ${grant.opportunityId ? `<a class="btn-ghost" style="text-decoration:none" href="https://www.grants.gov/search-results-detail/${encodeURIComponent(grant.opportunityId)}" target="_blank" rel="noopener">View on Grants.gov</a>` : ''}
+      ${grant.opportunityId ? `<a class="btn-ghost" style="text-decoration:none" href="https://www.grants.gov/search-results-detail/${encodeURIComponent(grant.opportunityId)}" target="_blank" rel="noopener">View on Grants.gov</a><button class="btn-ghost" data-url="https://www.grants.gov/search-results-detail/${encodeURIComponent(grant.opportunityId)}" onclick="copyGrantLink(this.dataset.url)">Copy link</button>` : ''}
     </div>
   </div>`;
 }
@@ -2182,7 +2202,8 @@ function renderAwardCard(a) {
     </div>
     <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
       <button class="btn-ghost" onclick="saveAwardFromCard(${a._index})">Save</button>
-      ${a.awardKey ? `<a class="btn-ghost" style="text-decoration:none" href="https://www.usaspending.gov/award/${encodeURIComponent(a.awardKey)}/" target="_blank" rel="noopener">View on USAspending</a>` : ''}
+      <button class="btn-ghost" onclick="findSimilarGrants(${a._index})">Find similar</button>
+      ${a.awardKey ? `<a class="btn-ghost" style="text-decoration:none" href="https://www.usaspending.gov/award/${encodeURIComponent(a.awardKey)}/" target="_blank" rel="noopener">View on USAspending</a><button class="btn-ghost" data-url="https://www.usaspending.gov/award/${encodeURIComponent(a.awardKey)}/" onclick="copyGrantLink(this.dataset.url)">Copy link</button>` : ''}
     </div>
   </div>`;
 }
