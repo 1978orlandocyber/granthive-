@@ -1538,6 +1538,12 @@ async function clearSavedData() {
         headers: { Authorization: 'Bearer ' + token }
       });
     } catch {}
+    try {
+      await fetch('/.netlify/functions/outcomes', {
+        method: 'DELETE',
+        headers: { Authorization: 'Bearer ' + token }
+      });
+    } catch {}
   }
   document.getElementById('eligibility-result').className = 'result-box';
   document.getElementById('eligibility-result').innerHTML = '';
