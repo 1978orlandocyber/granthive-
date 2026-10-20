@@ -13,6 +13,7 @@ import { getStore } from "@netlify/blobs";
 const ALLOWED_STATUSES = new Set(["saved", "applied", "won", "lost", "abandoned"]);
 const MAX_NOTES_LEN = 500;
 const MAX_RECORDS = 200;
+const MAX_RAW_BODY_LEN = 20000;
 
 function json(status, body) {
   return new Response(JSON.stringify(body), {
@@ -75,11 +76,20 @@ export default async function (req) {
   if (req.method === "GET") return json(200, { outcomes });
 
   if (req.method === "POST") {
-    const outcome = cleanOutcome(await req.json().catch(() => null));
+    const raw = await req.text().catch(() => "");
+    if (raw.length > MAX_RAW_BODY_LEN) return json(413, { error: "Request body is too large." });
+    let parsed = null;
+    try { parsed = JSON.parse(raw); } catch {}
+    const outcome = cleanOutcome(parsed);
     if (!outcome) return json(400, { error: "A grant id and a valid status are required." });
     const next = [outcome, ...outcomes.filter(o => o.id !== outcome.id)].slice(0, MAX_RECORDS);
     await store.setJSON(user.id, next);
     return json(200, { ok: true, outcomes: next });
+  }
+
+  if (req.method === "DELETE") {
+    await store.delete(user.id);
+    return json(200, { ok: true, outcomes: [] });
   }
 
   return json(405, { error: "Method not allowed." });
