@@ -1,5 +1,7 @@
 import { getStore } from "@netlify/blobs";
 
+const MAX_RAW_BODY_LEN = 20000;
+
 function json(status, body) {
   return new Response(JSON.stringify(body), {
     status,
@@ -45,7 +47,10 @@ export default async function (req) {
     return json(200, { email: user.email, profile: profile || null });
   }
   if (req.method === "POST") {
-    const body = await req.json().catch(() => null);
+    const raw = await req.text().catch(() => "");
+    if (raw.length > MAX_RAW_BODY_LEN) return json(413, { error: "Request body is too large." });
+    let body = null;
+    try { body = JSON.parse(raw); } catch {}
     if (!body || typeof body !== "object") return json(400, { error: "Invalid profile." });
     const profile = {
       orgType: String(body.orgType || "").slice(0, 40),
@@ -66,4 +71,7 @@ export default async function (req) {
   return json(405, { error: "Method not allowed." });
 }
 
-export const config = { path: "/.netlify/functions/profile" };
+export const config = {
+  path: "/.netlify/functions/profile",
+  rateLimit: { windowLimit: 30, windowSize: 60, aggregateBy: ["ip"] }
+};
