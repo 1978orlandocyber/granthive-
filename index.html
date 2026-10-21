@@ -1590,7 +1590,7 @@ const GHAuth = {
     return data;
   },
   async login(email, password) {
-    const d = await this.api('/token?grant_type=password', { method: 'POST', body: JSON.stringify({ email, password }) });
+    const d = await this.api('/token', { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: new URLSearchParams({ grant_type: 'password', username: email, password }).toString() });
     this.save({ access_token: d.access_token, refresh_token: d.refresh_token, expiresAt: Date.now() + (d.expires_in || 3600) * 1000, email: (d.user && d.user.email) || email });
   },
   async signup(email, password) {
@@ -1610,7 +1610,7 @@ const GHAuth = {
     const s = this.session;
     if (!s || !s.refresh_token) { this.clear(); setAccountLabel(); return; }
     try {
-      const d = await this.api('/token?grant_type=refresh_token', { method: 'POST', body: JSON.stringify({ refresh_token: s.refresh_token }) });
+      const d = await this.api('/token', { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: new URLSearchParams({ grant_type: 'refresh_token', refresh_token: s.refresh_token }).toString() });
       this.save({ access_token: d.access_token, refresh_token: d.refresh_token || s.refresh_token, expiresAt: Date.now() + (d.expires_in || 3600) * 1000, email: s.email });
     } catch { this.clear(); setAccountLabel(); }
   },
@@ -1713,7 +1713,7 @@ function wireAuthUI() {
       await GHAuth.api('/verify', { method: 'POST', body: JSON.stringify({ token: p.token, type: p.type, password }) });
       GHAuth._pendingToken = null;
       showAuthView('main'); setAuthMode('login');
-      showAuthInfo(p.type === 'invite' ? 'Account activated — log in with your new password.' : 'Password set — log in with your new password.');
+      showAuthInfo(p.invite ? 'Account activated — log in with your new password.' : 'Password set — log in with your new password.');
     } catch (err) { errBox.textContent = err.message; errBox.hidden = false; }
   });
   document.getElementById('welcome-start').addEventListener('click', () => {
@@ -1733,7 +1733,7 @@ function handleAuthHash() {
       .then(() => { GHAuth.openModal('login'); showAuthInfo('Email confirmed — log in to get started.'); })
       .catch(() => { GHAuth.openModal('login'); showAuthError('That confirmation link is invalid or expired.'); });
   } else {
-    GHAuth._pendingToken = { token: m[2], type: kind === 'invite_token' ? 'invite' : 'recovery' };
+    GHAuth._pendingToken = { token: m[2], type: kind === 'invite_token' ? 'signup' : 'recovery', invite: kind === 'invite_token' };
     document.getElementById('auth-newpw-title').textContent = kind === 'invite_token' ? 'Accept your invite' : 'Choose a new password';
     GHAuth.openModal('newpw');
   }
