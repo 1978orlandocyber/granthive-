@@ -554,8 +554,27 @@ function json(status, body) {
   });
 }
 
+// Freshness rules (founder directive, 2026-10-22): nothing sits on this list
+// without a date attached. Dated entries roll off automatically the day after
+// their deadline. Every entry also carries a reviewBy date — 45 days after it
+// was last verified, or its deadline if that comes first — which the weekly
+// sentinel enforces so rolling entries get re-checked instead of going stale
+// silently.
+function reviewByFor(g) {
+  const v = Date.parse(g.verified);
+  let review = Number.isNaN(v) ? Date.now() + 45 * 864e5 : v + 45 * 864e5;
+  if (g.deadline) {
+    const d = Date.parse(g.deadline);
+    if (!Number.isNaN(d)) review = Math.min(review, d);
+  }
+  return new Date(review).toISOString().slice(0, 10);
+}
+
 export default async function () {
-  return json(200, { source: "florida", count: GRANTS.length, grants: GRANTS });
+  const today = new Date().toISOString().slice(0, 10);
+  const open = GRANTS.filter(g => !g.deadline || g.deadline >= today);
+  const grants = open.map(g => ({ ...g, reviewBy: reviewByFor(g) }));
+  return json(200, { source: "florida", count: grants.length, closedCount: GRANTS.length - grants.length, grants });
 }
 
 export const config = { path: "/.netlify/functions/florida-grants" };
