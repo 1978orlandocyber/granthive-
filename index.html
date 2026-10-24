@@ -709,9 +709,9 @@
   <div class="section-title">Eligibility</div>
   <p class="section-sub">Check one real grant against your organization. The app does not pick the grant for you.</p>
 
-  <div class="card">
+  <div class="card" id="get-ready-first">
     <div class="card-title">Get ready first — five basics</div>
-    <p>Most grants assume these are already done. Missing one doesn't end your search — it tells you what to fix first, so a check can say "not yet" instead of letting you burn hours on an application that can't be accepted.</p>
+    <p>If you're a new grant seeker, start here: nearly every funder assumes these five things are already handled. Missing one doesn't end your search — it tells you what to fix first, so a check can say "not yet" instead of letting you burn hours on an application that can't win.</p>
     <ul style="margin:6px 0 10px 18px;padding:0">
       <li><strong>EIN</strong> — your organization's federal tax ID. Free from the IRS, and needed before almost everything else.</li>
       <li><strong>Tax status sorted</strong> — Nonprofits: 501(c)(3) status, or a fiscal sponsor who can accept funds for you while yours is pending. Businesses: registration with your state (in Florida, that's Sunbiz).</li>
@@ -785,7 +785,7 @@
   </button>
   <p style="margin-top:8px;font-size:12px;color:var(--muted)">Up to 8 checks per minute. Sign-in required.</p>
   <p style="margin-top:8px;font-size:12px;color:var(--muted)">Your organization profile and the grant description are sent to GrantComb&apos;s AI provider to produce this screening score. Avoid pasting sensitive personal data.</p>
-  <p style="margin-top:8px;font-size:12px;color:var(--muted)">Score held back by a missing basic — no EIN yet, no 501(c)(3), no SAM.gov? That's a "not yet," not a "no." See <strong>Get ready first</strong> at the top of this tab.</p>
+  <p style="margin-top:8px;font-size:12px;color:var(--muted)">Score held back by a missing basic — no EIN yet, no 501(c)(3), no SAM.gov? That's a "not yet," not a "no." <a href="#get-ready-first" onclick="document.getElementById('get-ready-first').scrollIntoView({behavior:'smooth'});return false;" style="color:var(--gold)">See Get ready first ↑</a> at the top of this tab.</p>
 
   <div class="result-box" id="eligibility-result"></div>
   <button class="btn-ghost" style="margin-top:16px" onclick="clearSavedData()">Clear saved data</button>
@@ -1115,7 +1115,7 @@
     </div>
     <div class="faq-item">
       <button class="faq-q" aria-expanded="false">What do I need before I can apply for a grant?<span class="faq-chev">›</span></button>
-      <div class="faq-a"><p>Five basics, and most grants assume you already have them: (1) an EIN from the IRS — free; (2) your tax status sorted — 501(c)(3), a fiscal sponsor, or state business registration; (3) for federal grants only, SAM.gov registration and a UEI — also free, and never pay a website to do it for you; (4) a bank account in your organization's name; (5) your mission statement, a simple budget, and your board or officer list on paper. The full checklist sits at the top of the Eligibility tab. If a check says you are not eligible because one of these is missing, read it as "not yet" — fix the gate, then come back and check again.</p></div>
+      <div class="faq-a"><p>Five basics, and most grants assume you already have them: (1) an EIN from the IRS — free; (2) your tax status sorted — 501(c)(3), a fiscal sponsor, or state business registration; (3) for federal grants only, SAM.gov registration and a UEI — also free, and never pay a website to do it for you; (4) a bank account in your organization's name; (5) your mission statement, a simple budget, and your board or officer list on paper. See the <a href="#" onclick="switchTab('eligibility');document.getElementById('get-ready-first').scrollIntoView({behavior:'smooth'});return false;" style="color:var(--gold)">full checklist at the top of the Eligibility tab →</a>. If a check says you are not eligible because one of these is missing, read it as "not yet" — fix the gate, then come back and check again.</p></div>
     </div>
     <div class="faq-item">
       <button class="faq-q" aria-expanded="false">What is the difference between a grant and a loan?<span class="faq-chev">›</span></button>
@@ -2032,6 +2032,11 @@ function pursuitBand(score, checks) {
 
 function renderEligibilityResult(data, grantName, savedAt) {
   const resultBox = document.getElementById('eligibility-result');
+  // Score ring color follows the pursuit band, so the number tells the same
+  // story as the label: green 80+ strong, gold 60-79 moderate, red below 60
+  // (or whenever a hard requirement is unmet and the band forces weak).
+  const band = pursuitBand(data.score, data.checks);
+  const scoreColor = band.cls === 'strong' ? 'var(--success)' : band.cls === 'moderate' ? 'var(--gold)' : 'var(--error)';
   const verdictClass = data.verdict === 'Likely Eligible' ? 'eligible' : data.verdict === 'Ineligible' ? 'ineligible' : 'review';
   const verdictDot = data.verdict === 'Likely Eligible' ? '●' : data.verdict === 'Ineligible' ? '✕' : '◐';
 
@@ -2064,8 +2069,8 @@ function renderEligibilityResult(data, grantName, savedAt) {
     </div>
 
     <div class="score-ring">
-      <div class="score-circle" style="background: conic-gradient(var(--gold) ${data.score}%, rgba(201,168,76,0.15) 0%)">
-        <span>${data.score}<small>/100</small></span>
+      <div class="score-circle" style="background: conic-gradient(${scoreColor} ${data.score}%, rgba(255,255,255,0.08) 0%)">
+        <span style="color:${scoreColor}">${data.score}<small>/100</small></span>
       </div>
       <div class="score-copy">
         <div style="font-size:11px;color:var(--muted);margin-bottom:6px;font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:1px">Match Score</div>
@@ -2073,10 +2078,10 @@ function renderEligibilityResult(data, grantName, savedAt) {
       </div>
     </div>
 
-    <div class="pursuit-band ${pursuitBand(data.score, data.checks).cls}">
+    <div class="pursuit-band ${band.cls}">
       <div>
-        <div class="pb-label">${escapeHTML(pursuitBand(data.score, data.checks).label)}</div>
-        <div style="margin-top:4px;color:var(--muted)">${escapeHTML(pursuitBand(data.score, data.checks).text)}</div>
+        <div class="pb-label">${escapeHTML(band.label)}</div>
+        <div style="margin-top:4px;color:var(--muted)">${escapeHTML(band.text)}</div>
       </div>
     </div>
     <div style="font-family:'DM Mono',monospace;font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--gold);margin-bottom:10px">
