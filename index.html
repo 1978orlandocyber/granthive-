@@ -190,7 +190,8 @@
   select option { background: var(--surface2); }
 
   .row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-  @media(max-width: 600px) { .row { grid-template-columns: 1fr; } }
+  .row-3 { grid-template-columns: 1fr 1fr 1fr; }
+  @media(max-width: 600px) { .row { grid-template-columns: 1fr; } .row-3 { grid-template-columns: 1fr; } }
 
   .btn {
     background: var(--gold);
@@ -941,7 +942,7 @@
   <div class="section-title">Florida Grants</div>
   <p class="section-sub">State and Florida foundation grants for nonprofits and for-profit businesses. Not federal.</p>
   <div class="tip-box">Confirm the deadline and rules on the official page before you apply. This is a starting list, not a funding decision.</div>
-  <div class="row">
+  <div class="row row-3">
     <div>
       <label>Who is this for</label>
       <select id="florida-audience" onchange="loadFloridaGrants()">
@@ -952,7 +953,20 @@
     </div>
     <div>
       <label>Search</label>
-      <input id="florida-filter" type="search" placeholder="Title, agency, or category" oninput="renderFlorida()">
+      <input id="florida-filter" type="search" placeholder="Title, agency, category, or region" oninput="renderFlorida()">
+    </div>
+    <div>
+      <label>Region</label>
+      <select id="florida-region" onchange="renderFlorida()">
+        <option value="">All regions</option>
+        <option value="Statewide">Statewide</option>
+        <option value="South Florida">South Florida</option>
+        <option value="Central Florida">Central Florida</option>
+        <option value="Tampa Bay">Tampa Bay</option>
+        <option value="Southwest Florida">Southwest Florida</option>
+        <option value="Northeast Florida">Northeast Florida</option>
+        <option value="Panhandle">Panhandle</option>
+      </select>
     </div>
   </div>
   <div id="florida-results">
@@ -1094,6 +1108,7 @@
 <div class="panel" id="panel-saved">
   <div class="section-title">Saved Grants</div>
   <p class="section-sub">Grants you save stay on your account — ones with deadlines show up on your Calendar. Track what happened to each one: applied, won, lost. Sign in required.</p>
+  <div id="next-step"></div>
   <input id="saved-filter" type="search" placeholder="Search saved grants" oninput="filterSavedGrants()" style="width:100%;margin:0 0 12px;padding:12px 14px;border-radius:10px;border:1px solid var(--border);background:var(--surface);color:var(--cream);font-size:14px">
   <div id="saved-results">
     <div class="empty-state"><div class="icon">📌</div><p>No saved grants yet. Save one from search or an eligibility result.</p></div>
@@ -1226,11 +1241,13 @@ async function loadFloridaGrants() {
 function renderFlorida() {
   const box = document.getElementById('florida-results');
   const audience = document.getElementById('florida-audience').value;
+  const region = document.getElementById('florida-region').value;
   const term = (document.getElementById('florida-filter').value || '').trim().toLowerCase();
   const shown = floridaGrants.filter(g => {
     if (audience && g.audience !== audience && g.audience !== 'both') return false;
+    if (region && g.region !== region) return false;
     if (!term) return true;
-    return [g.title, g.agency, g.category, g.summary].join(' ').toLowerCase().includes(term);
+    return [g.title, g.agency, g.category, g.region, g.summary].join(' ').toLowerCase().includes(term);
   });
   if (!shown.length) {
     box.innerHTML = '<div class="empty-state"><div class="icon">🔎</div><p>No Florida grants match that filter.</p></div>';
@@ -1245,6 +1262,7 @@ function renderFlorida() {
         <span class="tag amount">💰 ${escapeHTML(g.amount)}</span>
         <span class="tag deadline">⏱ ${escapeHTML(g.closeDate)}</span>
         <span class="tag">${g.audience === 'for-profit' ? 'For-profit' : g.audience === 'nonprofit' ? 'Nonprofit' : 'Both'}</span>
+        ${g.region ? '<span class="tag">📍 ' + escapeHTML(g.region) + '</span>' : ''}
       </div>
       <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
         <button class="btn-ghost florida-check-btn" data-id="${escapeHTML(g.id)}">Check eligibility</button>
@@ -1304,7 +1322,7 @@ function renderDeadlines() {
   for (const g of grants) {
     const d = parseCloseDate(g.deadline || g.closeDate);
     if (!d || d < today) continue;
-    items.push({ date: d, title: g.title || 'Saved grant', source: g.source || '', agency: g.agency || '' });
+    items.push({ id: g.id, date: d, title: g.title || 'Saved grant', source: g.source || '', agency: g.agency || '' });
   }
   if (deadlineFilter !== 'all') items = items.filter(i => i.source === deadlineFilter);
   items.sort((a, b) => a.date - b.date);
@@ -1320,10 +1338,12 @@ function renderDeadlines() {
     const when = days === 0 ? 'Today' : days === 1 ? 'Tomorrow' : 'in ' + days + ' days';
     const urgent = days <= 14 ? ' urgent' : '';
     const src = i.source === 'federal' ? 'Federal' : i.source === 'florida' ? 'Florida' : 'Saved';
+    const st = outcomeStatus(i.id);
+    const chip = (st === 'applied' || st === 'won' || st === 'lost') ? ' · <span class="tag">' + outcomeLabel(st) + '</span>' : '';
     return '<div class="deadline-row dl-tap" onclick="switchTab(\'saved\')">' +
       '<div class="dl-date"><span>' + months[i.date.getMonth()] + '</span><strong>' + i.date.getDate() + '</strong></div>' +
       '<div class="dl-body"><div class="dl-title">' + escapeHTML(i.title) + '</div>' +
-      '<div class="dl-meta">' + escapeHTML(src) + (i.agency ? ' · ' + escapeHTML(i.agency) : '') + '</div></div>' +
+      '<div class="dl-meta">' + escapeHTML(src) + (i.agency ? ' · ' + escapeHTML(i.agency) : '') + chip + '</div></div>' +
       '<div class="dl-when' + urgent + '">Closes<br>' + when + '</div></div>';
   }).join('');
 }
@@ -2279,12 +2299,49 @@ function requireSignIn() {
   return false;
 }
 
+function outcomeLabel(status) {
+  return status === 'applied' ? 'Applying' : status === 'won' ? 'Won' : status === 'lost' ? 'Lost' : 'Not started';
+}
+
+// "What to do next" strip: one glance at the nearest deadline and the pipeline
+// counts, so the Saved tab answers "what do I do now?" instead of only listing.
+function renderNextStep() {
+  const box = document.getElementById('next-step');
+  if (!box) return;
+  const grants = window.__savedGrants || [];
+  if (!grants.length) {
+    box.innerHTML = '<div class="tip-box">Nothing saved yet — save a grant from Federal or Florida search and your next step will appear here.</div>';
+    return;
+  }
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  const upcoming = grants
+    .map(g => ({ g, d: parseCloseDate(g.deadline || g.closeDate) }))
+    .filter(x => x.d && x.d >= today)
+    .sort((a, b) => a.d - b.d);
+  const stats = outcomeStats();
+  const counts = grants.length + ' saved · ' + stats.applied + ' tracked · ' + stats.won + ' won';
+  if (!upcoming.length) {
+    box.innerHTML = '<div class="tip-box">No upcoming deadlines among your saved grants. ' + counts + '.</div>';
+    return;
+  }
+  const next = upcoming[0];
+  const days = Math.round((next.d - today) / 86400000);
+  const when = days === 0 ? 'today' : days === 1 ? 'tomorrow' : 'in ' + days + ' days';
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  box.innerHTML = '<div class="tip-box"><strong>What to do next:</strong> ' + escapeHTML(next.g.title || 'Saved grant') +
+    ' — closes ' + months[next.d.getMonth()] + ' ' + next.d.getDate() + ' (' + when + ') · Status: ' + outcomeLabel(outcomeStatus(next.g.id)) +
+    '<br><span style="color:var(--muted)">' + counts + '.</span> ' +
+    '<button class="btn-ghost" style="margin-top:8px" onclick="switchTab(\'calendar\')">Open Calendar</button></div>';
+}
+
 async function loadSavedGrants() {
   const box = document.getElementById('saved-results');
   if (!box) return;
   const token = authToken();
   if (!token) {
     box.innerHTML = '<div class="empty-state"><div class="icon">🔐</div><p>Sign in to see saved grants.</p></div>';
+    const ns = document.getElementById('next-step');
+    if (ns) ns.innerHTML = '';
     return;
   }
   const res = await fetch('/.netlify/functions/saved-grants', { headers: { Authorization: 'Bearer ' + token } });
@@ -2294,6 +2351,7 @@ async function loadSavedGrants() {
   await loadOutcomes();
   renderSavedGrants(grants);
   renderDeadlines();
+  renderNextStep();
 }
 
 async function loadOutcomes() {
@@ -2348,6 +2406,7 @@ async function setOutcome(id, status) {
   }
   await loadOutcomes();
   renderSavedGrants(window.__savedGrants || []);
+  renderNextStep();
 }
 
 function filterSavedGrants() {
