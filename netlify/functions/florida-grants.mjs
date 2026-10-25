@@ -9,6 +9,7 @@ const GRANTS = [
     deadline: "",
     verified: "2026-10-18",
     category: "Arts",
+    region: "Statewide",
     summary: "Supports general program activities of Florida arts and cultural organizations. Applicant must be a Florida nonprofit or public entity with arts and cultural programming.",
     url: "https://dos.fl.gov/cultural/grants/grant-programs/general-program-support/"
   },
@@ -22,6 +23,7 @@ const GRANTS = [
     deadline: "",
     verified: "2026-10-18",
     category: "Arts",
+    region: "Statewide",
     summary: "Funds a single cultural project, program, exhibition, or series. Florida nonprofits, public entities, and some individual artists may apply.",
     url: "https://dos.fl.gov/cultural/grants/grant-programs/specific-cultural-projects/"
   },
@@ -35,6 +37,7 @@ const GRANTS = [
     deadline: "",
     verified: "2026-10-18",
     category: "Arts",
+    region: "Statewide",
     summary: "Supports renovation, construction, or acquisition of facilities for arts and cultural organizations. Applicant must be associated with an eligible organization.",
     url: "https://dos.fl.gov/cultural/grants/grant-programs/cultural-facilities/"
   },
@@ -48,6 +51,7 @@ const GRANTS = [
     deadline: "",
     verified: "2026-10-18",
     category: "Workforce",
+    region: "Statewide",
     summary: "Reimburses approved training costs for existing employees of Florida businesses. Small firms may receive a higher reimbursement rate. Most general nonprofits are not eligible.",
     url: "https://careersourceflorida.com/business-services/training-grants/"
   },
@@ -61,6 +65,7 @@ const GRANTS = [
     deadline: "",
     verified: "2026-10-18",
     category: "Workforce",
+    region: "Statewide",
     summary: "State-funded training for new, full-time employees at new or expanding Florida businesses in targeted industries. Training is specialized and non-degree.",
     url: "https://careersourceflorida.com/business-services/training-grants/"
   },
@@ -74,6 +79,7 @@ const GRANTS = [
     deadline: "",
     verified: "2026-10-18",
     category: "Health",
+    region: "Statewide",
     summary: "Multi-year grants for Florida nonprofits with documented work in mental well-being. Part of a larger Florida Blue Foundation health portfolio.",
     url: "https://www.floridablue.com/foundation"
   },
@@ -87,6 +93,7 @@ const GRANTS = [
     deadline: "2026-11-02",
     verified: "2026-10-20",
     category: "Capital",
+    region: "Southwest Florida",
     summary: "Capital grants for small nonprofits in Charlotte, DeSoto, Manatee, and Sarasota counties. Supports facilities, equipment, and related costs. Operating budget of $300,000 or less. A pre-grant meeting with the Grants Manager is required at least two weeks before the deadline.",
     url: "https://selbyfdn.org/sam-grant-application/"
   },
@@ -100,6 +107,7 @@ const GRANTS = [
     deadline: "2026-12-06",
     verified: "2026-10-20",
     category: "Arts",
+    region: "Central Florida",
     summary: "Competitive $5,000 grants (10 projects awarded) for a collaboration between an arts organization and a NON-arts organization in Lake, Orange, Osceola, or Seminole counties. Applicant must be a 501(c)(3) in good standing; the partner does not need to be one. Two arts organizations together are not eligible.",
     url: "https://unitedartscfl.org/grants/project-grants/"
   },
@@ -113,6 +121,7 @@ const GRANTS = [
     deadline: "",
     verified: "2026-10-18",
     category: "Community",
+    region: "Statewide",
     summary: "State service commission funding for AmeriCorps, volunteer engagement, disaster case management, and rural community projects. Mostly nonprofits and public partners.",
     url: "https://www.volunteerflorida.org/"
   },
@@ -126,6 +135,7 @@ const GRANTS = [
     deadline: "",
     verified: "2026-10-18",
     category: "Small business",
+    region: "South Florida",
     summary: "Local grant for Miami-Dade for-profit small businesses. Funds equipment, supplies, advertising, insurance, and minor renovations. Business must be in the district that is open. Not statewide.",
     url: "https://www.miamidade.gov/mom-pop-grants/"
   },
@@ -139,6 +149,7 @@ const GRANTS = [
     deadline: "",
     verified: "2026-10-18",
     category: "Trade",
+    region: "Statewide",
     summary: "Helps Florida manufacturers and service providers build an export marketing plan. Company pays $500. SelectFlorida covers up to $4,500. Limited to one per lifetime.",
     url: "https://selectflorida.org/export-from-florida/trade-grants/export-marketing-plans/"
   },
@@ -152,6 +163,7 @@ const GRANTS = [
     deadline: "",
     verified: "2026-10-18",
     category: "Capacity",
+    region: "Panhandle",
     summary: "Capacity grants for grassroots nonprofits in the West Florida service area. Funds professional development, consulting, software, and non-salary operations. Not statewide.",
     url: "https://www.unitedwaywestflorida.org/"
   },
@@ -165,6 +177,7 @@ const GRANTS = [
     deadline: "",
     verified: "2026-10-18",
     category: "Agriculture",
+    region: "Statewide",
     summary: "Funds projects that improve the market for specialty crops. Typical applicants are agricultural organizations and nonprofits. Confirm the current FDACS cycle.",
     url: "https://www.fdacs.gov/Agriculture-Industry/Grants-and-Funding-Opportunities"
   },
@@ -178,6 +191,7 @@ const GRANTS = [
     deadline: "",
     verified: "2026-10-18",
     category: "Libraries",
+    region: "Statewide",
     summary: "Grants for Florida libraries and nonprofit organizations that support library services, resource sharing, digitization, and cooperative systems.",
     url: "https://dos.fl.gov/library-archives/library-development/funding/"
   },
@@ -191,6 +205,7 @@ const GRANTS = [
     deadline: "",
     verified: "2026-10-18",
     category: "Economic development",
+    region: "Statewide",
     summary: "State economic development, workforce, broadband, rural, and community programs. Some are for businesses, some for local governments or nonprofits. Confirm the specific program.",
     url: "https://floridajobs.org/"
   },
@@ -204,6 +219,7 @@ const GRANTS = [
     deadline: "2026-12-31",
     verified: "2026-10-20",
     category: "Community",
+    region: "Southwest Florida",
     summary: "Program and event funding for nonprofits actively serving Sarasota, Charlotte, or DeSoto counties, Boca Grande, Lakewood Ranch, or Longboat Key. Up to $25,000 total per nonprofit per fiscal year across program and event grants combined.",
     url: "https://gulfcoastcf.org/community-impact/grants/apply"
   },
@@ -217,6 +233,7 @@ const GRANTS = [
     deadline: "2026-11-30",
     verified: "2026-10-20",
     category: "Community",
+    region: "Northeast Florida",
     summary: "Grants for 501(c)(3)s (or fiscally sponsored organizations) with at least two years of work serving the Beaches area from Mayport to Guana, east of the Intracoastal Waterway. Narrow geography — Beaches organizations only.",
     url: "https://www.jaxcf.org/grants/beaches-community-fund/"
   },
@@ -230,6 +247,7 @@ const GRANTS = [
     deadline: "2026-11-13",
     verified: "2026-10-20",
     category: "Health",
+    region: "Southwest Florida",
     summary: "Micro-grants (up to 8 awards) for 501(c)(3)s in Charlotte, Glades, or Hendry counties working on health, well-being, and root-cause projects. Decisions announced by December 1, 2026.",
     url: "https://collaboratory.org/Grantmaking/"
   },
@@ -243,6 +261,7 @@ const GRANTS = [
     deadline: "2026-12-15",
     verified: "2026-10-20",
     category: "Community",
+    region: "South Florida",
     summary: "Major grants for Broward County 501(c)(3)s operating at least three years; Candid Gold Seal of Transparency required. This window covers Arts & Culture and Healthy & Thriving Communities. Single applicants may request up to $200,000/year (max 50% of operating budget).",
     url: "https://www.cfbroward.org/receive/apply-for-grants"
   },
@@ -256,6 +275,7 @@ const GRANTS = [
     deadline: "2026-11-30",
     verified: "2026-10-20",
     category: "Community",
+    region: "South Florida",
     summary: "Grants for Broward nonprofits improving, expanding, or launching transition services for youth and young adults ages 12–26 with intellectual and developmental disabilities. Applications open October 30, 2026.",
     url: "https://www.cfbroward.org/articles/new-grants-for-nonprofits-helping-youth-with-intellectual-and-developmental-disabilities-idd"
   },
@@ -269,6 +289,7 @@ const GRANTS = [
     deadline: "2026-12-18",
     verified: "2026-10-20",
     category: "Community",
+    region: "South Florida",
     summary: "Competitive grants for nonprofits serving Palm Beach and Martin counties. Letter of intent due December 18, 2026; invited full proposals follow in March 2027. One proposal per organization.",
     url: "https://yourcommunityfoundation.org/the-competitive-grantmaking-process/"
   },
@@ -282,6 +303,7 @@ const GRANTS = [
     deadline: "2027-04-01",
     verified: "2026-10-20",
     category: "Capacity",
+    region: "Southwest Florida",
     summary: "Capacity-building support for 501(c)(3) public charities with a physical presence in Sarasota, Manatee, Charlotte, or DeSoto County and a current Giving Partner profile. The spring cycle opens April 1, 2027 for 30 days.",
     url: "https://www.cfsarasota.org/Capacity-Building-Grants"
   },
@@ -295,6 +317,7 @@ const GRANTS = [
     deadline: "2026-10-28",
     verified: "2026-10-20",
     category: "Community",
+    region: "Tampa Bay",
     summary: "Mini-grants (20 awards) for Florida-registered nonprofits and small businesses located in St. Petersburg and operating at least one year. Funds a service or wellness activity held January 9–24, 2027 in arts/culture, community support, environment, or health/wellness.",
     url: "https://www.stpete.org/Final_10-6%20MLK%20Grant%20Guidelines.pdf?t=202610091347210"
   },
@@ -308,6 +331,7 @@ const GRANTS = [
     deadline: "",
     verified: "2026-10-20",
     category: "Arts",
+    region: "South Florida",
     summary: "Sponsorships for arts and cultural festivals and special events held in Broward County and open to the public. Up to $25,000 for new or emerging events; up to $50,000 for established events. Nonprofits and for-profit arts organizations may apply.",
     url: "https://www.broward.org/arts/Funding/Sponsorships/ArtsCulturalFestivalSpecialEventSponsorship"
   },
@@ -321,6 +345,7 @@ const GRANTS = [
     deadline: "2027-01-25",
     verified: "2026-10-20",
     category: "Arts",
+    region: "South Florida",
     summary: "Sponsorships for nonprofits in the Palm Beaches: up to $100,000 for new marketing activations, up to $50,000 for special events/festivals, up to $30,000 for MOSAIC programming. Cycle opens December 14, 2026; funded projects must be new (three years old or less).",
     url: "https://www.palmbeachculture.com/cultural-organizations/sponsorships/"
   },
@@ -334,6 +359,7 @@ const GRANTS = [
     deadline: "",
     verified: "2026-10-20",
     category: "Community",
+    region: "Central Florida",
     summary: "For registered neighborhood organizations and HOAs ONLY (not general nonprofits or businesses). Funds projects on neighborhood common areas that cut energy or water use, restore ponds, or build community gardens. Accepted first-come during the fiscal year window.",
     url: "https://www.ocfl.net/Portals/0/Library/Neighbors-Housing/docs/Sustainable%20Communities%20Grant%20Guidelines%20(rev.%20April%202025)-CMcert.pdf"
   },
@@ -347,6 +373,7 @@ const GRANTS = [
     deadline: "",
     verified: "2026-10-20",
     category: "Community",
+    region: "Northeast Florida",
     summary: "Annual city grants for nonprofits serving Jacksonville's most vulnerable residents. The application cycle opens each May, and attending the mandatory applicant workshop is required to apply.",
     url: "http://www.coj.net/departments/finance/grants-and-compliance/public-service-grants"
   },
@@ -360,6 +387,7 @@ const GRANTS = [
     deadline: "",
     verified: "2026-10-20",
     category: "Arts",
+    region: "Tampa Bay",
     summary: "Operating support for organizations whose primary mission is delivering cultural programs in Hillsborough County. Applications open in a short January window each year.",
     url: "https://www.hillsborougharts.org/organizational-grants/"
   },
@@ -373,6 +401,7 @@ const GRANTS = [
     deadline: "",
     verified: "2026-10-20",
     category: "Arts",
+    region: "Tampa Bay",
     summary: "Small grants for community-based arts organizations serving underserved populations in Hillsborough County. Designed partly as a first-grant opportunity for smaller organizations. (A separate track offers colleges up to $12,500.)",
     url: "https://www.hillsborougharts.org/organizational-grants/"
   },
@@ -386,6 +415,7 @@ const GRANTS = [
     deadline: "",
     verified: "2026-10-20",
     category: "Arts",
+    region: "Tampa Bay",
     summary: "Support for new or significantly expanding public arts and cultural events in Hillsborough County. Two cycles per fiscal year. Applicants must be 501(c)(3), (c)(4), or (c)(6); charitable fundraising events are not eligible.",
     url: "https://hcfl.gov/businesses/business-community/business-grants/apply-for-a-cultural-assets-program-special-events-partnership-grant"
   },
@@ -399,6 +429,7 @@ const GRANTS = [
     deadline: "",
     verified: "2026-10-20",
     category: "Capital",
+    region: "Tampa Bay",
     summary: "Reimbursement grants (1:1 match required) for rehabilitation or restoration of historic structures and heritage-tourism projects in Hillsborough County. Nonprofits and private owners may apply for construction projects; no government applicants and no private residences.",
     url: "https://www.hillsboroughcounty.org/en/businesses/business-community/grants/action-folder/apply-for-a-historic-preservation-challenge-grant"
   },
@@ -412,6 +443,7 @@ const GRANTS = [
     deadline: "",
     verified: "2026-10-20",
     category: "Arts",
+    region: "South Florida",
     summary: "County-funded support for small or emerging nonprofit cultural organizations in Palm Beach County with operating revenues of at least $25,000. Applications are expected to open in Summer 2027.",
     url: "https://www.palmbeachculture.com/cultural-organizations/grants-for-cultural-organizations/category-c-i-grant/"
   },
@@ -425,6 +457,7 @@ const GRANTS = [
     deadline: "",
     verified: "2026-10-20",
     category: "Community",
+    region: "Tampa Bay",
     summary: "Grants for 501(c)(3)s incorporated in Florida for at least one year and serving low-income Pinellas County residents, in food, homeless and housing, healthcare, human services, and aging priorities.",
     url: "https://pinellas.gov/news/social-action-funding-grant-applications-sought-3/"
   },
@@ -438,6 +471,7 @@ const GRANTS = [
     deadline: "",
     verified: "2026-10-20",
     category: "Capital",
+    region: "Tampa Bay",
     summary: "One-time capital and community-asset project funding for nonprofits, for projects located in unincorporated Pinellas County only. Operating expenses are not eligible.",
     url: "https://pinellas.gov/mstu-special-projects-funding-application-instructions/"
   },
@@ -451,6 +485,7 @@ const GRANTS = [
     deadline: "",
     verified: "2026-10-20",
     category: "Arts",
+    region: "Southwest Florida",
     summary: "Tourist Development Tax funding for Florida 501(c)(3)s running arts or cultural events in Sarasota County designed to attract tourists. Awards are tiered by organization size; at least 50% of funds must go to marketing. Applications open each January.",
     url: "https://sarasotaarts.org/wp-content/uploads/sites/sarasotaarts.org/images/2025/12/FY27-TDCA-Guidelines-1.pdf"
   },
@@ -464,6 +499,7 @@ const GRANTS = [
     deadline: "",
     verified: "2026-10-20",
     category: "Arts",
+    region: "Statewide",
     summary: "Brings a Florida Talks speaker to your community: Florida Humanities pays the $300 speaker honorarium directly and reimburses up to $250 in travel for hosts with budgets of $250,000 or less. Programs must be free and open to the public. Nonprofits, municipalities, and civic or educational hosts may apply.",
     url: "https://floridahumanities.org/funding-opportunities/florida-talks-program/"
   },
@@ -477,6 +513,7 @@ const GRANTS = [
     deadline: "2026-10-31",
     verified: "2026-10-20",
     category: "Environment",
+    region: "Statewide",
     summary: "Coastal resilience, public access, working waterfront, and stewardship projects in Florida's 35 coastal counties. A local government must lead or partner — nonprofits may apply only with an eligible local-government partner, and may not lead construction or restoration.",
     url: "https://floridadep.gov/rcp/fcmp/content/grants"
   },
@@ -490,6 +527,7 @@ const GRANTS = [
     deadline: "",
     verified: "2026-10-20",
     category: "Community",
+    region: "Statewide",
     summary: "Cost-share grants for rural volunteer fire departments serving communities of 10,000 or fewer. Nonprofit departments that are at least 80% volunteer and NIMS-compliant may apply. Approved on a rolling basis until funding is exhausted.",
     url: "https://www.fdacs.gov/Forest-Wildfire/For-Communities/Grants/Volunteer-Fire-Assistance-Grants"
   },
@@ -503,6 +541,7 @@ const GRANTS = [
     deadline: "2027-07-01",
     verified: "2026-10-20",
     category: "Environment",
+    region: "Statewide",
     summary: "Federal funding for transient recreational boater tie-up facilities (for boats 26 feet and longer). Local governments, nonprofits, and private organizations may apply. Tier I projects may request up to $300,000; larger Tier II projects more.",
     url: "https://myfwc.com/boating/grants-programs/bigp/"
   },
@@ -516,6 +555,7 @@ const GRANTS = [
     deadline: "",
     verified: "2026-10-20",
     category: "Environment",
+    region: "Statewide",
     summary: "License-plate funded grants for community-based springs research and outreach. Open to 501(c)(3)s, government agencies, and universities; applications open each March.",
     url: "https://wildlifeflorida.org/conservation-grants/"
   },
@@ -529,6 +569,7 @@ const GRANTS = [
     deadline: "",
     verified: "2026-10-20",
     category: "Environment",
+    region: "Statewide",
     summary: "License-plate funded grants for conservation, habitat, hunting and shooting sports, and public open space projects. Open to 501(c)(3)s, government agencies, and colleges; applications open each June.",
     url: "https://wildlifeflorida.org/wildlife-foundation-of-florida-tag-grants/"
   },
@@ -542,6 +583,7 @@ const GRANTS = [
     deadline: "",
     verified: "2026-10-20",
     category: "Environment",
+    region: "Statewide",
     summary: "License-plate funded grants for ocean, estuarine, and coastal research and conservation. General education or outreach-only projects are not considered. Applications run September 1–30 each year.",
     url: "http://wildlifeflorida.org/discover-floridas-oceans-tag-grants/"
   }
