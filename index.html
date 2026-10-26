@@ -120,6 +120,13 @@
   .tab.active {
     color: var(--gold);
     border-bottom-color: var(--gold);
+    transform: translateY(-2px);
+  }
+
+  /* Selected-tab lift: keep it still for users who prefer reduced motion. */
+  @media (prefers-reduced-motion: reduce) {
+    .tab { transition: none; }
+    .tab.active { transform: none; }
   }
 
   .tab:hover:not(.active) { color: var(--cream); }
