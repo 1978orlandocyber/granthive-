@@ -693,9 +693,10 @@
   <button type="submit">Search</button>
 </form>
 
-<p class="start-here">Start with Eligibility — or search Federal grants, past Winners, or Florida grants. The Calendar is a planning guide.</p>
+<p class="start-here">Start with Eligibility — or search Federal grants, past Winners, or Florida grants. The Calendar is a planning guide. New to grants? The Get Ready tab covers the five basics first.</p>
 <div class="tabs">
   <div class="tab active" onclick="switchTab('eligibility', event)">Eligibility</div>
+  <div class="tab" onclick="switchTab('getready', event)">Get Ready</div>
   <div class="tab" onclick="switchTab('grants', event)">Federal</div>
   <div class="tab" onclick="switchTab('winners', event)">Winners</div>
   <div class="tab" onclick="switchTab('florida', event)">Florida</div>
@@ -709,19 +710,6 @@
 <div class="panel active" id="panel-eligibility">
   <div class="section-title">Eligibility</div>
   <p class="section-sub">Check one real grant against your organization. The app does not pick the grant for you.</p>
-
-  <div class="card" id="get-ready-first">
-    <div class="card-title">Get ready first — five basics</div>
-    <p>If you're a new grant seeker, start here: nearly every funder assumes these five things are already handled. Missing one doesn't end your search — it tells you what to fix first, so a check can say "not yet" instead of letting you burn hours on an application that can't win.</p>
-    <ul style="margin:6px 0 10px 18px;padding:0">
-      <li><strong>EIN</strong> — your organization's federal tax ID. Free from the IRS, and needed before almost everything else.</li>
-      <li><strong>Tax status sorted</strong> — Nonprofits: 501(c)(3) status, or a fiscal sponsor who can accept funds for you while yours is pending. Businesses: registration with your state (in Florida, that's Sunbiz).</li>
-      <li><strong>SAM.gov registration + UEI</strong> — required for federal grants only, and it is free at SAM.gov. Never pay a website to register you — that's a common scam. Allow a few weeks; don't wait for the perfect grant to start.</li>
-      <li><strong>A bank account in your organization's name</strong> — funders pay organizations, not personal accounts.</li>
-      <li><strong>Your basics on paper</strong> — a short mission statement, a simple annual budget, and a list of your board or officers. Nearly every application asks for all three.</li>
-    </ul>
-    <p>GrantComb doesn't set up nonprofits or file registrations — that's your homework, and free help exists: Florida SBDC and SCORE mentors coach new founders at no cost. Once you're set up, this is the tool that makes sure you apply to the right grants.</p>
-  </div>
 
   <div class="tip-box">
     1. Search on <strong>Federal</strong> or <strong>Florida</strong>.<br>
@@ -786,10 +774,29 @@
   </button>
   <p style="margin-top:8px;font-size:12px;color:var(--muted)">Up to 8 checks per minute. Sign-in required.</p>
   <p style="margin-top:8px;font-size:12px;color:var(--muted)">Your organization profile and the grant description are sent to GrantComb&apos;s AI provider to produce this screening score. Avoid pasting sensitive personal data.</p>
-  <p style="margin-top:8px;font-size:12px;color:var(--muted)">Score held back by a missing basic — no EIN yet, no 501(c)(3), no SAM.gov? That's a "not yet," not a "no." <a href="#get-ready-first" onclick="document.getElementById('get-ready-first').scrollIntoView({behavior:'smooth'});return false;" style="color:var(--gold)">See Get ready first ↑</a> at the top of this tab.</p>
+  <p style="margin-top:8px;font-size:12px;color:var(--muted)">Score held back by a missing basic — no EIN yet, no 501(c)(3), no SAM.gov? That's a "not yet," not a "no." <a href="#" onclick="switchTab('getready', event);return false;" style="color:var(--gold)">See the Get Ready tab →</a> for the five basics.</p>
 
   <div class="result-box" id="eligibility-result"></div>
   <button class="btn-ghost" style="margin-top:16px" onclick="clearSavedData()">Clear saved data</button>
+</div>
+
+<!-- GET READY -->
+<div class="panel" id="panel-getready">
+  <div class="section-title">Get Ready</div>
+  <p class="section-sub">Not about learning the app — this is for first-time grant seekers. Nearly every funder assumes these five things are already handled before you start your first grant search. If you already have them, skip this tab entirely.</p>
+
+  <div class="card" id="get-ready-first">
+    <div class="card-title">Get ready first — five basics</div>
+    <p>If you're a new grant seeker, start here: nearly every funder assumes these five things are already handled. Missing one doesn't end your search — it tells you what to fix first, so a check can say "not yet" instead of letting you burn hours on an application that can't win.</p>
+    <ul style="margin:6px 0 10px 18px;padding:0">
+      <li><strong>EIN</strong> — your organization's federal tax ID. Free from the IRS, and needed before almost everything else.</li>
+      <li><strong>Tax status sorted</strong> — Nonprofits: 501(c)(3) status, or a fiscal sponsor who can accept funds for you while yours is pending. Businesses: registration with your state (in Florida, that's Sunbiz).</li>
+      <li><strong>SAM.gov registration + UEI</strong> — required for federal grants only, and it is free at SAM.gov. Never pay a website to register you — that's a common scam. Allow a few weeks; don't wait for the perfect grant to start.</li>
+      <li><strong>A bank account in your organization's name</strong> — funders pay organizations, not personal accounts.</li>
+      <li><strong>Your basics on paper</strong> — a short mission statement, a simple annual budget, and a list of your board or officers. Nearly every application asks for all three.</li>
+    </ul>
+    <p>GrantComb doesn't set up nonprofits or file registrations — that's your homework, and free help exists: Florida SBDC and SCORE mentors coach new founders at no cost. Once you're set up, this is the tool that makes sure you apply to the right grants.</p>
+  </div>
 </div>
 
 <!-- GRANTS.GOV SEARCH -->
@@ -1130,7 +1137,7 @@
     </div>
     <div class="faq-item">
       <button class="faq-q" aria-expanded="false">What do I need before I can apply for a grant?<span class="faq-chev">›</span></button>
-      <div class="faq-a"><p>Five basics, and most grants assume you already have them: (1) an EIN from the IRS — free; (2) your tax status sorted — 501(c)(3), a fiscal sponsor, or state business registration; (3) for federal grants only, SAM.gov registration and a UEI — also free, and never pay a website to do it for you; (4) a bank account in your organization's name; (5) your mission statement, a simple budget, and your board or officer list on paper. See the <a href="#" onclick="switchTab('eligibility');document.getElementById('get-ready-first').scrollIntoView({behavior:'smooth'});return false;" style="color:var(--gold)">full checklist at the top of the Eligibility tab →</a>. If a check says you are not eligible because one of these is missing, read it as "not yet" — fix the gate, then come back and check again.</p></div>
+      <div class="faq-a"><p>Five basics, and most grants assume you already have them: (1) an EIN from the IRS — free; (2) your tax status sorted — 501(c)(3), a fiscal sponsor, or state business registration; (3) for federal grants only, SAM.gov registration and a UEI — also free, and never pay a website to do it for you; (4) a bank account in your organization's name; (5) your mission statement, a simple budget, and your board or officer list on paper. See the <a href="#" onclick="switchTab('getready');return false;" style="color:var(--gold)">full checklist on the Get Ready tab →</a>. If a check says you are not eligible because one of these is missing, read it as "not yet" — fix the gate, then come back and check again.</p></div>
     </div>
     <div class="faq-item">
       <button class="faq-q" aria-expanded="false">What is the difference between a grant and a loan?<span class="faq-chev">›</span></button>
