@@ -1978,6 +1978,7 @@ async function runEligibilityCheck() {
     saveProfile();
     syncProfileToAccount();
     renderEligibilityResult(payload, grantName, new Date().toISOString());
+    recordUsage('check');
     const note = document.createElement('div');
     note.className = 'saved-note';
     note.textContent = 'Organization profile saved on this device.';
@@ -2314,6 +2315,18 @@ function requireSignIn() {
   return false;
 }
 
+// Pilot usage counters (counts only — no grant text, no personal data).
+// Fire-and-forget: a failed count must never break saving or checking.
+function recordUsage(event) {
+  const token = authToken();
+  if (!token) return;
+  fetch('/.netlify/functions/usage', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
+    body: JSON.stringify({ event })
+  }).catch(() => {});
+}
+
 function outcomeLabel(status) {
   return status === 'applied' ? 'Applying' : status === 'won' ? 'Won' : status === 'lost' ? 'Lost' : 'Not started';
 }
@@ -2478,6 +2491,7 @@ async function saveGrant(grant) {
     return;
   }
   await loadSavedGrants();
+  recordUsage('save');
   alert('Saved.');
 }
 
