@@ -77,10 +77,10 @@ const GRANTS = [
     amount: "About $300,000–$400,000 over four years",
     closeDate: "Annual — next cycle dates not posted",
     deadline: "",
-    verified: "2026-10-18",
+    verified: "2026-10-26",
     category: "Health",
     region: "Statewide",
-    summary: "Multi-year grants for Florida nonprofits with documented work in mental well-being. Part of a larger Florida Blue Foundation health portfolio.",
+    summary: "Multi-year grants for Florida nonprofits with documented work in mental well-being. Part of a larger Florida Blue Foundation health portfolio. 2026 application closed; monitor the foundation page for future opportunities.",
     url: "https://www.floridablue.com/foundation"
   },
   {
@@ -105,7 +105,7 @@ const GRANTS = [
     amount: "$5,000",
     closeDate: "December 6, 2026",
     deadline: "2026-12-06",
-    verified: "2026-10-20",
+    verified: "2026-10-26",
     category: "Arts",
     region: "Central Florida",
     summary: "Competitive $5,000 grants (10 projects awarded) for a collaboration between an arts organization and a NON-arts organization in Lake, Orange, Osceola, or Seminole counties. Applicant must be a 501(c)(3) in good standing; the partner does not need to be one. Two arts organizations together are not eligible.",
@@ -161,11 +161,11 @@ const GRANTS = [
     amount: "Up to $5,000",
     closeDate: "Annual — next cycle dates not posted",
     deadline: "",
-    verified: "2026-10-18",
+    verified: "2026-10-26",
     category: "Capacity",
     region: "Panhandle",
     summary: "Capacity grants for grassroots nonprofits in the West Florida service area. Funds professional development, consulting, software, and non-salary operations. Not statewide.",
-    url: "https://www.unitedwaywestflorida.org/"
+    url: "https://www.uwwf.org/minigrants"
   },
   {
     id: "fl-crop",
@@ -301,7 +301,7 @@ const GRANTS = [
     amount: "Up to $15,000",
     closeDate: "April 1, 2027",
     deadline: "2027-04-01",
-    verified: "2026-10-20",
+    verified: "2026-10-26",
     category: "Capacity",
     region: "Southwest Florida",
     summary: "Capacity-building support for 501(c)(3) public charities with a physical presence in Sarasota, Manatee, Charlotte, or DeSoto County and a current Giving Partner profile. The spring cycle opens April 1, 2027 for 30 days.",
@@ -337,13 +337,13 @@ const GRANTS = [
   },
   {
     id: "fl-pbc-bright",
-    title: "Bright Ideas Sponsorships",
+    title: "Bright Idea Sponsorships",
     agency: "Cultural Council for Palm Beach County",
     audience: "nonprofit",
     amount: "Up to $100,000",
     closeDate: "January 25, 2027",
     deadline: "2027-01-25",
-    verified: "2026-10-20",
+    verified: "2026-10-26",
     category: "Arts",
     region: "South Florida",
     summary: "Sponsorships for nonprofits in the Palm Beaches: up to $100,000 for new marketing activations, up to $50,000 for special events/festivals, up to $30,000 for MOSAIC programming. Cycle opens December 14, 2026; funded projects must be new (three years old or less).",
@@ -441,10 +441,10 @@ const GRANTS = [
     amount: "Amount varies",
     closeDate: "Annual — expected Summer 2027",
     deadline: "",
-    verified: "2026-10-20",
+    verified: "2026-10-26",
     category: "Arts",
     region: "South Florida",
-    summary: "County-funded support for small or emerging nonprofit cultural organizations in Palm Beach County with operating revenues of at least $25,000. Applications are expected to open in Summer 2027.",
+    summary: "Support for small or emerging nonprofit cultural organizations in Palm Beach County with operating revenues of at least $25,000. Applications are expected to open in Summer 2027.",
     url: "https://www.palmbeachculture.com/cultural-organizations/grants-for-cultural-organizations/category-c-i-grant/"
   },
   {
@@ -481,13 +481,13 @@ const GRANTS = [
     agency: "Sarasota County",
     audience: "nonprofit",
     amount: "Up to $125,000 (tiered, 1:1 match)",
-    closeDate: "Annual — January–March window",
+    closeDate: "Annual — next cycle dates not posted",
     deadline: "",
-    verified: "2026-10-20",
+    verified: "2026-10-26",
     category: "Arts",
     region: "Southwest Florida",
-    summary: "Tourist Development Tax funding for Florida 501(c)(3)s running arts or cultural events in Sarasota County designed to attract tourists. Awards are tiered by organization size; at least 50% of funds must go to marketing. Applications open each January.",
-    url: "https://sarasotaarts.org/wp-content/uploads/sites/sarasotaarts.org/images/2025/12/FY27-TDCA-Guidelines-1.pdf"
+    summary: "Tourist Development Tax funding for Florida 501(c)(3)s running arts or cultural events in Sarasota County designed to attract tourists. Awards are tiered by organization size; at least 50% of funds must go to marketing. FY27 cycle closed March 13, 2026; no next-cycle dates posted yet.",
+    url: "https://sarasotaarts.org/tourist-development-cultural-arts-program/"
   },
   {
     id: "fl-fltalks",
