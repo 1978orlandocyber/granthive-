@@ -700,7 +700,7 @@
   <button type="submit">Search</button>
 </form>
 
-<p class="start-here">Start with Eligibility — or search Federal grants, past Winners, or Florida grants. The Calendar is a planning guide. New to grants? The Get Ready tab covers the five basics first.</p>
+<p class="start-here">Find a grant first — search Federal grants, past Winners, or Florida grants — then check it on Eligibility. The Calendar is a planning guide. New to grants? The Get Ready tab covers the five basics first.</p>
 <div class="tabs">
   <div class="tab active" onclick="switchTab('eligibility', event)">Eligibility</div>
   <div class="tab" onclick="switchTab('getready', event)">Get Ready</div>
@@ -752,11 +752,11 @@
     <div class="row">
       <div>
         <label>Industry / Focus Area</label>
-        <input type="text" id="org-industry" placeholder="e.g. Health & Wellness, Clean Energy, Education" value="Health & Wellness" maxlength="200">
+        <input type="text" id="org-industry" placeholder="e.g. Health & Wellness, Clean Energy, Education" maxlength="200">
       </div>
       <div>
         <label>Location (State)</label>
-        <input type="text" id="org-location" placeholder="e.g. Florida, New York, California" value="Florida" maxlength="200">
+        <input type="text" id="org-location" placeholder="e.g. Florida, New York, California" maxlength="200">
       </div>
     </div>
     <label>Number of Employees</label>
@@ -774,7 +774,7 @@
     <label>Grant description. Filled when you tap Check eligibility, or paste it from Grants.gov.</label>
     <textarea id="grant-desc" placeholder="This fills in after you tap Check eligibility on a grant. Or paste the grant’s own description here." maxlength="8000"></textarea>
     <label>Grant Name (optional)</label>
-    <input type="text" id="grant-name" placeholder="e.g. SBIR Phase I — NIH" value="SBIR Phase I — NIH" maxlength="200">
+    <input type="text" id="grant-name" placeholder="e.g. SBIR Phase I — NIH" maxlength="200">
   </div>
 
   <button class="btn" id="check-btn" onclick="runEligibilityCheck()">
@@ -809,7 +809,7 @@
 
 <!-- GRANTS.GOV SEARCH -->
 <div class="panel" id="panel-grants">
-  <div class="section-title">Grants.gov Live Search</div>
+  <div class="section-title">Federal Grants</div>
   <p class="section-sub">Search real federal grants through GrantComb — live results from Grants.gov, without visiting their site.</p>
 
   <div class="tip-box">
@@ -821,7 +821,7 @@
     <div class="row">
       <div>
         <label>Keywords</label>
-        <input type="text" id="search-query" placeholder="e.g. health, small business, education" value="health">
+        <input type="text" id="search-query" placeholder="e.g. health, small business, education">
       </div>
       <div>
         <label>Eligibility</label>
@@ -914,7 +914,7 @@
 
 <!-- AWARD HISTORY -->
 <div class="panel" id="panel-winners">
-  <div class="section-title">Federal Award History</div>
+  <div class="section-title">Winners</div>
   <p class="section-sub">Who actually won federal grants — from USAspending.gov, the free public record. Pair this with the Federal search: find what&apos;s open, then see who gets funded.</p>
 
   <div class="card">
@@ -922,7 +922,7 @@
     <div class="row">
       <div>
         <label>Keywords</label>
-        <input type="text" id="award-query" placeholder="e.g. health, education, housing" value="health">
+        <input type="text" id="award-query" placeholder="e.g. health, education, housing">
       </div>
       <div>
         <label>Recipient state (optional)</label>
