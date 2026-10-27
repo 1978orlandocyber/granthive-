@@ -701,6 +701,7 @@
 </form>
 
 <p class="start-here">Find a grant first — search Federal grants, past Winners, or Florida grants — then check it on Eligibility. The Calendar is a planning guide. New to grants? The Get Ready tab covers the five basics first.</p>
+<div id="closing-soon" class="tip-box" style="display:none;margin:12px 16px 0"></div>
 <div class="tabs">
   <div class="tab active" onclick="switchTab('eligibility', event)">Eligibility</div>
   <div class="tab" onclick="switchTab('getready', event)">Get Ready</div>
@@ -772,7 +773,7 @@
   <div class="card">
     <div class="card-title">The grant you picked</div>
     <label>Grant description. Filled when you tap Check eligibility, or paste it from Grants.gov.</label>
-    <textarea id="grant-desc" placeholder="This fills in after you tap Check eligibility on a grant. Or paste the grant’s own description here." maxlength="8000"></textarea>
+    <textarea id="grant-desc" placeholder="This fills in after you tap Check eligibility on a grant. Or paste the grant’s own description here — full eligibility text gives the most accurate check." maxlength="8000"></textarea>
     <label>Grant Name (optional)</label>
     <input type="text" id="grant-name" placeholder="e.g. SBIR Phase I — NIH" maxlength="200">
   </div>
@@ -797,13 +798,13 @@
     <div class="card-title">Get ready first — five basics</div>
     <p>Missing one doesn't end your search — it tells you what to fix first, so a check can say "not yet" instead of letting you burn hours on an application that can't win.</p>
     <ul style="margin:6px 0 10px 18px;padding:0">
-      <li><strong>EIN</strong> — your organization's federal tax ID. Free from the IRS, and needed before almost everything else.</li>
-      <li><strong>Tax status sorted</strong> — Nonprofits: 501(c)(3) status, or a fiscal sponsor who can accept funds for you while yours is pending. Businesses: registration with your state (in Florida, that's Sunbiz).</li>
-      <li><strong>SAM.gov registration + UEI</strong> — required for federal grants only, and it is free at SAM.gov. Never pay a website to register you — that's a common scam. Allow a few weeks; don't wait for the perfect grant to start.</li>
+      <li><strong>EIN</strong> — your organization's federal tax ID. Free from the <a href="https://www.irs.gov/businesses/small-businesses-self-employed/get-an-employer-identification-number" target="_blank" rel="noopener">IRS</a>, and needed before almost everything else.</li>
+      <li><strong>Tax status sorted</strong> — Nonprofits: 501(c)(3) status, or a fiscal sponsor who can accept funds for you while yours is pending. Businesses: registration with your state (in Florida, that's <a href="https://sunbiz.org" target="_blank" rel="noopener">Sunbiz</a>).</li>
+      <li><strong>SAM.gov registration + UEI</strong> — required for federal grants only, and it is free at <a href="https://sam.gov" target="_blank" rel="noopener">SAM.gov</a>. Never pay a website to register you — that's a common scam. Allow a few weeks; don't wait for the perfect grant to start.</li>
       <li><strong>A bank account in your organization's name</strong> — funders pay organizations, not personal accounts.</li>
       <li><strong>Your basics on paper</strong> — a short mission statement, a simple annual budget, and a list of your board or officers. Nearly every application asks for all three.</li>
     </ul>
-    <p>GrantComb doesn't set up nonprofits or file registrations — that's your homework, and free help exists: Florida SBDC and SCORE mentors coach new founders at no cost. Once you're set up, this is the tool that makes sure you apply to the right grants.</p>
+    <p>GrantComb doesn't set up nonprofits or file registrations — that's your homework, and free help exists: <a href="https://floridasbdc.org" target="_blank" rel="noopener">Florida SBDC</a> and <a href="https://www.score.org" target="_blank" rel="noopener">SCORE</a> mentors coach new founders at no cost. Once you're set up, this is the tool that makes sure you apply to the right grants.</p>
   </div>
 </div>
 
@@ -2362,6 +2363,23 @@ function renderNextStep() {
     '<button class="btn-ghost" style="margin-top:8px" onclick="switchTab(\'calendar\')">Open Calendar</button></div>';
 }
 
+function renderClosingSoon() {
+  const box = document.getElementById('closing-soon');
+  if (!box) return;
+  const grants = window.__savedGrants || [];
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  const horizon = new Date(today); horizon.setDate(horizon.getDate() + 7);
+  let n = 0;
+  for (const g of grants) {
+    const d = parseCloseDate(g.deadline || g.closeDate);
+    if (d && d >= today && d <= horizon) n++;
+  }
+  if (!n) { box.style.display = 'none'; box.innerHTML = ''; return; }
+  box.innerHTML = '⏰ ' + n + (n === 1 ? ' grant closes' : ' grants close') + ' in the next 7 days. ' +
+    '<a href="#" onclick="switchTab(\'saved\', event);return false;" style="color:var(--gold)">See Saved →</a>';
+  box.style.display = '';
+}
+
 async function loadSavedGrants() {
   const box = document.getElementById('saved-results');
   if (!box) return;
@@ -2370,6 +2388,8 @@ async function loadSavedGrants() {
     box.innerHTML = '<div class="empty-state"><div class="icon">🔐</div><p>Sign in to see saved grants.</p></div>';
     const ns = document.getElementById('next-step');
     if (ns) ns.innerHTML = '';
+    const cs = document.getElementById('closing-soon');
+    if (cs) { cs.style.display = 'none'; cs.innerHTML = ''; }
     return;
   }
   const res = await fetch('/.netlify/functions/saved-grants', { headers: { Authorization: 'Bearer ' + token } });
@@ -2380,6 +2400,7 @@ async function loadSavedGrants() {
   renderSavedGrants(grants);
   renderDeadlines();
   renderNextStep();
+  renderClosingSoon();
 }
 
 async function loadOutcomes() {
