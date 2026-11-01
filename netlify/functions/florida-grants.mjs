@@ -738,7 +738,7 @@ const GRANTS = [
     verified: "2026-11-01",
     category: "Health",
     region: "Central Florida",
-    summary: "Annual grants for 501(c)(3)s serving Orange, Osceola, Seminole, and South Lake counties, for programs addressing Community Health Needs Assessment priorities (housing instability, transportation, food insecurity). Starts with an Expression of Interest; invited full proposals follow; funding begins January 1 of the following year.",
+    summary: "Annual grants for 501(c)(3)s serving Orange, Osceola, Seminole, and South Lake counties, for programs addressing 2026-cycle Community Health Needs Assessment priorities (housing instability, transportation, food insecurity). Starts with an Expression of Interest; invited full proposals follow; funding begins January 1 of the following year.",
     url: "https://www.adventhealth.com/community-benefit/central-florida/community-health"
   },
   {
@@ -752,7 +752,7 @@ const GRANTS = [
     verified: "2026-11-01",
     category: "Community",
     region: "Statewide",
-    summary: "Rolling grants of $20,000 or less for nonprofits in Duke Energy Florida service communities (not all of Florida — applicants must serve Duke Energy Florida territory and contact their state representative before filing), in vibrant economies, climate resiliency, and opportunity/inclusion focus areas.",
+    summary: "Rolling grants of $20,000 or less for nonprofits in Duke Energy Florida service communities (not all of Florida — applicants must serve Duke Energy Florida territory; the foundation recommends contacting their state representative before filing), in vibrant economies, climate resiliency, and opportunity/inclusion focus areas.",
     url: "https://foundation.duke-energy.com/grants"
   }
 ];

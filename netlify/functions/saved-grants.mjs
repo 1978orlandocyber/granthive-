@@ -48,6 +48,7 @@ function cleanGrant(body) {
     number: String(body.number || "").slice(0, 80),
     opportunityId: String(body.opportunityId || "").slice(0, 80),
     closeDate: String(body.closeDate || "").slice(0, 40),
+    deadline: String(body.deadline || "").slice(0, 10),
     amount: String(body.amount || "").slice(0, 40),
     source: String(body.source || "federal").slice(0, 20),
     savedAt: new Date().toISOString()
