@@ -1342,7 +1342,7 @@ function renderDeadlines() {
   const today = new Date(); today.setHours(0, 0, 0, 0);
   let items = [];
   for (const g of grants) {
-    const d = parseCloseDate(g.deadline || g.closeDate);
+    const d = parseCloseDate(g.deadline) || parseCloseDate(g.closeDate);
     if (!d || d < today) continue;
     items.push({ id: g.id, date: d, title: g.title || 'Saved grant', source: g.source || '', agency: g.agency || '' });
   }
@@ -2350,7 +2350,7 @@ function renderNextStep() {
   }
   const today = new Date(); today.setHours(0, 0, 0, 0);
   const upcoming = grants
-    .map(g => ({ g, d: parseCloseDate(g.deadline || g.closeDate) }))
+    .map(g => ({ g, d: parseCloseDate(g.deadline) || parseCloseDate(g.closeDate) }))
     .filter(x => x.d && x.d >= today)
     .sort((a, b) => a.d - b.d);
   const stats = outcomeStats();
@@ -2377,7 +2377,7 @@ function renderClosingSoon() {
   const horizon = new Date(today); horizon.setDate(horizon.getDate() + 7);
   let n = 0;
   for (const g of grants) {
-    const d = parseCloseDate(g.deadline || g.closeDate);
+    const d = parseCloseDate(g.deadline) || parseCloseDate(g.closeDate);
     if (d && d >= today && d <= horizon) n++;
   }
   if (!n) { box.style.display = 'none'; box.innerHTML = ''; return; }
