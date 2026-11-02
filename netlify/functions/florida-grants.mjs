@@ -243,12 +243,12 @@ const GRANTS = [
     agency: "Collaboratory (Southwest Florida Community Foundation)",
     audience: "nonprofit",
     amount: "Up to $5,000",
-    closeDate: "November 13, 2026",
-    deadline: "2026-11-13",
-    verified: "2026-10-20",
+    closeDate: "November 12, 2026",
+    deadline: "2026-11-12",
+    verified: "2026-11-02",
     category: "Health",
     region: "Southwest Florida",
-    summary: "Micro-grants (up to 8 awards) for 501(c)(3)s in Charlotte, Glades, or Hendry counties working on health, well-being, and root-cause projects. Decisions announced by December 1, 2026.",
+    summary: "Micro-grants (up to 8 awards) for 501(c)(3)s in Charlotte, Glades, or Hendry counties working on health, well-being, and root-cause projects. Decisions announced by December 1, 2026. Deadline is 5 p.m. Eastern.",
     url: "https://collaboratory.org/Grantmaking/"
   },
   {
@@ -612,7 +612,7 @@ const GRANTS = [
     verified: "2026-11-01",
     category: "Community",
     region: "Northeast Florida",
-    summary: "Grants for nonprofits exclusively serving women and girls in Baker, Clay, Duval, Nassau, Putnam, or St. Johns counties, focused on addressing violence against women and girls. One-year grants (budgets under $250,000, max $10,000) and two-year grants ($50,000–$125,000). 501(c)(3) or fiscal sponsor, minimum two-year history. Organizations may apply for ONE of the two grant types. Opens November 30, 2026.",
+    summary: "Grants for nonprofits exclusively serving women and girls in Baker, Clay, Duval, Nassau, Putnam, or St. Johns counties, focused on addressing violence against women and girls. One-year grants (budgets under $250,000, max $10,000) and two-year grants ($50,000–$125,000). 501(c)(3) or fiscal sponsor, minimum two-year history. Organizations may apply for ONE of the two grant types. Opens November 30, 2026. Not eligible with an open WGA grant: any prior WGA grant must be fully closed out, with reporting submitted, before the application deadline.",
     url: "https://wganefl.org/apply-for-grants-open/"
   },
   {
