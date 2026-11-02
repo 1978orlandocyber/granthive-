@@ -612,7 +612,7 @@ const GRANTS = [
     verified: "2026-11-01",
     category: "Community",
     region: "Northeast Florida",
-    summary: "Grants for nonprofits exclusively serving women and girls in Baker, Clay, Duval, Nassau, Putnam, or St. Johns counties, focused on addressing violence against women and girls. One-year grants (budgets under $250,000, max $10,000) and two-year grants ($50,000–$125,000). 501(c)(3) or fiscal sponsor, minimum two-year history. Opens November 30, 2026.",
+    summary: "Grants for nonprofits exclusively serving women and girls in Baker, Clay, Duval, Nassau, Putnam, or St. Johns counties, focused on addressing violence against women and girls. One-year grants (budgets under $250,000, max $10,000) and two-year grants ($50,000–$125,000). 501(c)(3) or fiscal sponsor, minimum two-year history. Organizations may apply for ONE of the two grant types. Opens November 30, 2026.",
     url: "https://wganefl.org/apply-for-grants-open/"
   },
   {
@@ -634,13 +634,13 @@ const GRANTS = [
     title: "Food and Basic Needs Insecurity Grants",
     agency: "Community Foundation for Northeast Florida",
     audience: "nonprofit",
-    amount: "$10,000–$20,000",
+    amount: "Up to $10,000 or $20,000, by budget size",
     closeDate: "March 3, 2027",
     deadline: "2027-03-03",
     verified: "2026-11-01",
     category: "Community",
     region: "Northeast Florida",
-    summary: "Services and resources (food, clothing, other basic needs) for residents experiencing food and basic needs insecurity, plus disability support agencies. Budgets $100,000–$250,000 may request up to $10,000; over $250,000 up to $20,000. 501(c)(3), 2-year history, Baker/Clay/Duval/Nassau/St. Johns.",
+    summary: "Services and resources (food, clothing, other basic needs) for residents experiencing food and basic needs insecurity, plus disability support agencies. Budgets $100,000–$250,000 may request up to $10,000; over $250,000 up to $20,000. 501(c)(3), private operating foundation, or religious institution (non-religious programs); 2-year history; Baker/Clay/Duval/Nassau/St. Johns. Excludes schools, athletic associations, and event sponsorships.",
     url: "https://www.jaxcf.org/grants/program-support-for-food-and-basic-needs/"
   },
   {
@@ -682,8 +682,8 @@ const GRANTS = [
     verified: "2026-11-01",
     category: "Arts",
     region: "Northeast Florida",
-    summary: "Rolling sponsorships up to $2,500 from the Dr. JoAnn Crisp-Ellert Fund to promote visual art appreciation or education in St. Augustine.",
-    url: "https://www.jaxcf.org/apply-for-grants-or-scholarships/"
+    summary: "Rolling sponsorships of $2,500 or less from the Dr. JoAnn Crisp-Ellert Fund to promote visual art appreciation or education in St. Augustine, while funds are still available; program grants greater than $2,500 can be discussed with program staff.",
+    url: "https://www.jaxcf.org/grants/visual-art-in-st-augustine/"
   },
   {
     id: "fl-collier-program",
