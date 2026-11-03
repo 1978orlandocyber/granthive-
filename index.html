@@ -1250,6 +1250,7 @@ async function loadFloridaGrants() {
     const res = await fetch('/.netlify/functions/florida-grants');
     const data = await res.json().catch(() => ({}));
     floridaGrants = Array.isArray(data.grants) ? data.grants : [];
+    if (res.ok && Array.isArray(data.grants)) floridaLiveOk = true;
   }
   renderFlorida();
 }
@@ -1335,6 +1336,25 @@ function parseCloseDate(s) {
   }
   return null;
 }
+// Live-date overlay (pilot fix): a saved Florida grant shows the LIVE
+// deadline when its id matches a live Florida entry, so a corrected date
+// reaches accounts that saved the grant before the correction. The saved
+// copy is kept when: the record is not a Florida save, the id is absent
+// from the live list (rolled off or removed), or the live deadline does
+// not parse (a bad data edit must never blank a saved date). Title,
+// amount and everything else always stay as saved. Federal saves are
+// untouched. Surfaces render first from saved copies, then refine
+// with live dates when the list arrives (see refineSavedGrants);
+// if it is unavailable, every surface keeps the saved copy, and a
+// failed fetch is NOT cached — the next saved-grants load or Calendar
+// open retries. A successful live fetch is kept for the session.
+function liveDateFor(g) {
+  if (!g || g.source !== 'florida' || !floridaGrants.length) return null;
+  const live = floridaGrants.find(x => x.id === g.id);
+  if (!live) return null;
+  const d = parseCloseDate(live.deadline);
+  return d ? { date: d, closeDate: live.closeDate || g.closeDate } : null;
+}
 function renderDeadlines() {
   const box = document.getElementById('deadlines-list');
   if (!box) return;
@@ -1342,7 +1362,8 @@ function renderDeadlines() {
   const today = new Date(); today.setHours(0, 0, 0, 0);
   let items = [];
   for (const g of grants) {
-    const d = parseCloseDate(g.deadline) || parseCloseDate(g.closeDate);
+    const live = liveDateFor(g);
+    const d = live ? live.date : (parseCloseDate(g.deadline) || parseCloseDate(g.closeDate));
     if (!d || d < today) continue;
     items.push({ id: g.id, date: d, title: g.title || 'Saved grant', source: g.source || '', agency: g.agency || '' });
   }
@@ -1370,15 +1391,55 @@ function renderDeadlines() {
   }).join('');
 }
 
+let floridaLivePromise = null;
+let floridaLiveOk = false;
+let savedRefinePromise = null;
 async function ensureFloridaGrants() {
-  if (!floridaGrants.length) {
-    try {
-      const res = await fetch('/.netlify/functions/florida-grants');
-      const data = await res.json().catch(() => ({}));
-      if (Array.isArray(data.grants)) floridaGrants = data.grants;
-    } catch {}
+  if (floridaGrants.length) return floridaGrants;
+  if (floridaLiveOk) return floridaGrants;
+  if (!floridaLivePromise) {
+    floridaLivePromise = (async () => {
+      const ctrl = new AbortController();
+      const timer = setTimeout(() => ctrl.abort(), 5000);
+      try {
+        const res = await fetch('/.netlify/functions/florida-grants', { signal: ctrl.signal });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok || !Array.isArray(data.grants)) throw new Error('florida fetch failed');
+        floridaGrants = data.grants;
+        floridaLiveOk = true;
+      } catch {
+        // Do NOT cache a failure: clear the promise so the next
+        // saved-grants load or Calendar open retries. No automatic
+        // retry here, so a down function is never hammered.
+        floridaLivePromise = null;
+        return [];
+      } finally {
+        clearTimeout(timer);
+      }
+      return floridaGrants;
+    })();
   }
-  return floridaGrants;
+  return floridaLivePromise;
+}
+
+// Render-first refinement: the caller renders saved copies immediately,
+// then this re-renders with live dates when (and only when) the live
+// list arrives. It is deduped — repeated saved-grants loads while a
+// fetch is in flight share one refinement — and race-safe: it reads
+// window.__savedGrants at completion time, never an array captured at
+// load, so a grant removed or saved mid-flight cannot reappear.
+function refineSavedGrants() {
+  if (floridaGrants.length || floridaLiveOk) return Promise.resolve();
+  if (savedRefinePromise) return savedRefinePromise;
+  savedRefinePromise = (async () => {
+    try { await ensureFloridaGrants(); } catch {}
+    const current = window.__savedGrants || [];
+    renderSavedGrants(current);
+    renderDeadlines();
+    renderNextStep();
+    renderClosingSoon();
+  })().finally(() => { savedRefinePromise = null; });
+  return savedRefinePromise;
 }
 
 let closingSoonFederal = [];
@@ -1392,6 +1453,12 @@ async function renderOpenNow() {
   if (flBox && !flBox.dataset.done) {
     flBox.innerHTML = '<div class="loading-row"><span class="spinner"></span> Checking what\u2019s open...</div>';
     const grants = await ensureFloridaGrants();
+    if (!grants.length && !floridaLiveOk) {
+      // Fetch failed: do NOT mark done and do NOT claim nothing is
+      // open. Leave the box retryable — the next Calendar open retries.
+      flBox.innerHTML = '<div class="empty-state"><p>Florida grants could not be loaded right now. Reopen Calendar to try again.</p></div>';
+      return;
+    }
     const dated = [], rolling = [];
     for (const g of grants) {
       const d = g.deadline ? parseCloseDate(g.deadline) : null;
@@ -2350,7 +2417,7 @@ function renderNextStep() {
   }
   const today = new Date(); today.setHours(0, 0, 0, 0);
   const upcoming = grants
-    .map(g => ({ g, d: parseCloseDate(g.deadline) || parseCloseDate(g.closeDate) }))
+    .map(g => { const live = liveDateFor(g); return { g, d: live ? live.date : (parseCloseDate(g.deadline) || parseCloseDate(g.closeDate)) }; })
     .filter(x => x.d && x.d >= today)
     .sort((a, b) => a.d - b.d);
   const stats = outcomeStats();
@@ -2377,7 +2444,8 @@ function renderClosingSoon() {
   const horizon = new Date(today); horizon.setDate(horizon.getDate() + 7);
   let n = 0;
   for (const g of grants) {
-    const d = parseCloseDate(g.deadline) || parseCloseDate(g.closeDate);
+    const live = liveDateFor(g);
+    const d = live ? live.date : (parseCloseDate(g.deadline) || parseCloseDate(g.closeDate));
     if (d && d >= today && d <= horizon) n++;
   }
   if (!n) { box.style.display = 'none'; box.innerHTML = ''; return; }
@@ -2403,10 +2471,14 @@ async function loadSavedGrants() {
   const grants = Array.isArray(data.grants) ? data.grants : [];
   window.__savedGrants = grants;
   await loadOutcomes();
+  // Render first from saved copies — do not wait on Florida — then
+  // refine in the background. refineSavedGrants reads the CURRENT
+  // saved list at completion, so it cannot resurrect a removed grant.
   renderSavedGrants(grants);
   renderDeadlines();
   renderNextStep();
   renderClosingSoon();
+  refineSavedGrants();
 }
 
 async function loadOutcomes() {
@@ -2483,13 +2555,15 @@ function renderSavedGrants(grants) {
     : '';
   box.innerHTML = statsHtml + grants.map(g => {
     const cur = outcomeStatus(g.id);
+    const live = liveDateFor(g);
+    const shownClose = live ? live.closeDate : g.closeDate;
     const opt = (v, label) => `<option value="${v}"${cur === v ? ' selected' : ''}>${label}</option>`;
     return `
     <div class="grant-card">
       <div class="grant-card-title">${escapeHTML(g.title)}</div>
       <div class="grant-meta">
         ${g.agency ? `<span class="tag agency">🏛 ${escapeHTML(g.agency)}</span>` : ''}
-        ${g.closeDate ? `<span class="tag deadline">⏱ ${escapeHTML(g.closeDate)}</span>` : ''}
+        ${shownClose ? `<span class="tag deadline">⏱ ${escapeHTML(shownClose)}</span>` : ''}
         ${g.number ? `<span class="tag">${escapeHTML(g.number)}</span>` : ''}
       </div>
       <div style="display:flex;gap:8px;margin-top:12px;align-items:center;flex-wrap:wrap">
