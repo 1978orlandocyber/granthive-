@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <link rel="icon" href="/logo.png" type="image/png">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>GrantComb — AI Grant Eligibility and Grant Search</title>
+<title>GrantComb — Florida grant search and eligibility</title>
 <meta name="description" content="GrantComb helps organizations check grant eligibility with AI and search live federal opportunities from Grants.gov.">
 <meta name="robots" content="index, follow">
 <meta property="og:title" content="GrantComb — AI Grant Eligibility and Grant Search">
@@ -539,7 +539,8 @@
     font-size: 14px;
     color: var(--muted);
   }
-  .tabs { flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; padding: 16px 16px 0; scrollbar-width: none; }
+  .start-here a { color: var(--gold); cursor: pointer; text-decoration: underline; }
+  .tabs { flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; padding: 16px 16px 0; scrollbar-width: none; -webkit-mask-image: linear-gradient(to right, #000 88%, transparent 100%); mask-image: linear-gradient(to right, #000 88%, transparent 100%); }
   .tabs::-webkit-scrollbar { display: none; }
   .tab { font-size: 14px; flex-shrink: 0; white-space: nowrap; }
   @media (max-width: 640px) {
@@ -679,9 +680,9 @@
     <img class="welcome-logo" src="/logo.png" alt="GrantComb logo">
     <div class="welcome-brand">GrantComb</div>
     <h2>Know before you apply.</h2>
-    <p>Small organizations deserve the same shot at funding as the big ones. GrantComb finds grants worth your time and checks your eligibility up front — free.</p>
+    <p>Small organizations in Florida deserve the same shot at funding as the big ones. GrantComb finds grants worth your time and checks your eligibility up front — free.</p>
     <ul class="welcome-steps">
-      <li><span class="n">1</span><span><strong>Search</strong> live federal grants, past winners, and Florida opportunities.</span></li>
+      <li><span class="n">1</span><span><strong>Search</strong> Florida opportunities first, plus live federal grants and past winners.</span></li>
       <li><span class="n">2</span><span><strong>Check eligibility</strong> — we screen one real grant against your organization.</span></li>
       <li><span class="n">3</span><span><strong>Track</strong> what you save and what happens — applied, won, lost.</span></li>
     </ul>
@@ -700,14 +701,14 @@
   <button type="submit">Search</button>
 </form>
 
-<p class="start-here">Find a grant first — search Federal grants, past Winners, or Florida grants — then check it on Eligibility. The Calendar is a planning guide. New to grants? The Get Ready tab covers the five basics first.</p>
+<p class="start-here"><strong>Start here:</strong> <a href="#" onclick="switchTab('florida', event);return false;">Browse Florida grants</a> &middot; <a href="#" onclick="switchTab('eligibility', event);return false;">Check a grant I found</a> &middot; <a href="#" onclick="switchTab('getready', event);return false;">New? Get Ready</a></p>
 <div id="closing-soon" class="tip-box" style="display:none;margin:12px 16px 0"></div>
 <div class="tabs">
   <div class="tab active" onclick="switchTab('eligibility', event)">Eligibility</div>
+  <div class="tab" onclick="switchTab('florida', event)">Florida</div>
   <div class="tab" onclick="switchTab('getready', event)">Get Ready</div>
   <div class="tab" onclick="switchTab('grants', event)">Federal</div>
   <div class="tab" onclick="switchTab('winners', event)">Winners</div>
-  <div class="tab" onclick="switchTab('florida', event)">Florida</div>
   <div class="tab" onclick="switchTab('calendar', event)">Calendar</div>
   <div class="tab" onclick="switchTab('saved', event)">Saved</div>
   <!-- PILOT: Pro tab hidden until pricing + payment exist; panel-pro kept in code for restore -->
@@ -957,6 +958,7 @@
 <div class="panel" id="panel-florida">
   <div class="section-title">Florida Grants</div>
   <p class="section-sub">State and Florida foundation grants for nonprofits and for-profit businesses. Not federal.</p>
+  <p class="section-sub" style="color:var(--gold-light);font-weight:600">50+ Florida funders, hand-checked — each entry shows its verified date.</p>
   <div class="tip-box">Confirm the deadline and rules on the official page before you apply. This is a starting list, not a funding decision.</div>
   <div class="row row-3">
     <div>
@@ -1200,14 +1202,14 @@
     </div>
     <div class="faq-item">
       <button class="faq-q" aria-expanded="false">Who made GrantComb?<span class="faq-chev">›</span></button>
-      <div class="faq-a"><p>GrantComb was built by [Founder Name] on a simple belief: small organizations deserve the same shot at funding as the big ones. So GrantComb finds grants worth your time and checks your eligibility up front — free. No hype, no paywall, plain language. If it helps your organization find its grant, that is the whole point.</p></div>
+      <div class="faq-a"><p>GrantComb was built by [Founder Name] on a simple belief: small organizations in Florida deserve the same shot at funding as the big ones. So GrantComb finds grants worth your time and checks your eligibility up front — free. No hype, no paywall, plain language. If it helps your organization find its grant, that is the whole point.</p></div>
     </div>
   </div>
   <div class="legal-links"><a href="/terms.html">Terms of Service</a> &nbsp;·&nbsp; <a href="/privacy.html">Privacy Policy</a></div>
 </div>
 
 <footer class="site-footer">
-  GrantComb — Know before you apply.<br>
+  GrantComb — Know before you apply. Florida first.<br>
   <a href="/terms.html">Terms</a> · <a href="/privacy.html">Privacy</a>
 </footer>
 
@@ -1572,8 +1574,12 @@ function saveClosingSoon(i) {
 function switchTab(id, evt) {
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
   document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-  const tab = evt && evt.target ? evt.target : document.querySelector('.tab[onclick*="' + id + '"]');
-  if (tab) tab.classList.add('active');
+  // Resolve the tab by id, not by the click target: switchTab is also called
+  // from links/buttons inside panels, and evt.target there is not a tab,
+  // which left no tab looking selected. Scroll it into view so a tab
+  // off-screen on a phone is brought into the bar.
+  const tab = document.querySelector('.tab[onclick*="\'' + id + '\'"]') || (evt && evt.target && evt.target.classList && evt.target.classList.contains('tab') ? evt.target : null);
+  if (tab) { tab.classList.add('active'); if (tab.scrollIntoView) tab.scrollIntoView({ behavior: 'smooth', inline: 'nearest', block: 'nearest' }); }
   const panel = document.getElementById('panel-' + id);
   if (panel) panel.classList.add('active');
   if (id === 'saved') loadSavedGrants();
