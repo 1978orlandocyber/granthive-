@@ -5,10 +5,14 @@
 <link rel="icon" href="/logo.png" type="image/png">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>GrantComb — Florida grant search and eligibility</title>
-<meta name="description" content="GrantComb helps organizations check grant eligibility with AI and search live federal opportunities from Grants.gov.">
+<meta name="description" content="GrantComb helps very small Florida nonprofits check grant eligibility and find hand-checked Florida grants — free.">
 <meta name="robots" content="index, follow">
-<meta property="og:title" content="GrantComb — AI Grant Eligibility and Grant Search">
-<meta property="og:description" content="Check grant eligibility with AI and search live federal opportunities from Grants.gov.">
+<meta property="og:title" content="GrantComb — Florida grant search and eligibility">
+<meta property="og:description" content="GrantComb helps very small Florida nonprofits check grant eligibility and find hand-checked Florida grants — free.">
+<meta property="og:image" content="https://grantcomb.netlify.app/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://grantcomb.netlify.app/">
 <link rel="canonical" href="https://grantcomb.netlify.app/">
@@ -266,6 +270,7 @@
   }
 
   .status-badge.checking { background: rgba(201,168,76,0.1); color: var(--gold); }
+  .status-badge.provisional { background: rgba(201,168,76,0.1); color: var(--gold); }
   .status-badge.eligible { background: rgba(76,175,125,0.12); color: var(--success); }
   .status-badge.review { background: rgba(224,92,92,0.12); color: var(--error); }
   .status-badge.ineligible { background: rgba(224,92,92,0.18); color: var(--error); }
@@ -282,6 +287,7 @@
   }
   .pursuit-band.strong { background: rgba(76,175,125,0.10); border: 1px solid rgba(76,175,125,0.35); }
   .pursuit-band.moderate { background: rgba(201,168,76,0.08); border: 1px solid var(--border); }
+  .pursuit-band.provisional { background: rgba(201,168,76,0.08); border: 1px solid var(--border); }
   .pursuit-band.weak { background: rgba(224,92,92,0.08); border: 1px solid rgba(224,92,92,0.25); }
   .pursuit-band .pb-label {
     font-weight: 700;
@@ -292,6 +298,7 @@
   }
   .pursuit-band.strong .pb-label { color: var(--success); }
   .pursuit-band.moderate .pb-label { color: var(--gold); }
+  .pursuit-band.provisional .pb-label { color: var(--gold); }
   .pursuit-band.weak .pb-label { color: var(--error); }
 
   .check-row {
@@ -540,7 +547,8 @@
     color: var(--muted);
   }
   .start-here a { color: var(--gold); cursor: pointer; text-decoration: underline; }
-  .tabs { flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; padding: 16px 16px 0; scrollbar-width: none; -webkit-mask-image: linear-gradient(to right, #000 88%, transparent 100%); mask-image: linear-gradient(to right, #000 88%, transparent 100%); }
+  .start-here a.start-chip { display: inline-flex; align-items: center; min-height: 44px; padding: 10px 16px; margin: 4px 8px 4px 0; border: 1px solid var(--gold); border-radius: 999px; text-decoration: none; font-weight: 600; box-sizing: border-box; }
+  .tabs { flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; padding: 16px 16px 0; padding-right: 56px; scroll-padding-inline: 56px; scrollbar-width: none; -webkit-mask-image: linear-gradient(to right, #000 88%, transparent 100%); mask-image: linear-gradient(to right, #000 88%, transparent 100%); }
   .tabs::-webkit-scrollbar { display: none; }
   .tab { font-size: 14px; flex-shrink: 0; white-space: nowrap; }
   @media (max-width: 640px) {
@@ -701,7 +709,7 @@
   <button type="submit">Search</button>
 </form>
 
-<p class="start-here"><strong>Start here:</strong> <a href="#" onclick="switchTab('florida', event);return false;">Browse Florida grants</a> &middot; <a href="#" onclick="switchTab('eligibility', event);return false;">Check a grant I found</a> &middot; <a href="#" onclick="switchTab('getready', event);return false;">New? Get Ready</a></p>
+<p class="start-here"><strong>Start here:</strong> <a class="start-chip" href="#" onclick="switchTab('florida', event);return false;">Browse Florida grants</a> <a class="start-chip" href="#" onclick="checkFoundGrant(event);return false;">Check a grant I found</a> <a class="start-chip" href="#" onclick="switchTab('getready', event);return false;">New? Get Ready</a></p>
 <div id="closing-soon" class="tip-box" style="display:none;margin:12px 16px 0"></div>
 <div class="tabs">
   <div class="tab active" onclick="switchTab('eligibility', event)">Eligibility</div>
@@ -753,11 +761,11 @@
     </div>
     <div class="row">
       <div>
-        <label>Industry / Focus Area</label>
+        <label>Industry / Focus Area (add your yearly budget if you know it)</label>
         <input type="text" id="org-industry" placeholder="e.g. Health & Wellness, Clean Energy, Education" maxlength="200">
       </div>
       <div>
-        <label>Location (State)</label>
+        <label>Location (state, county, or ZIP)</label>
         <input type="text" id="org-location" placeholder="e.g. Florida, New York, California" maxlength="200">
       </div>
     </div>
@@ -958,7 +966,7 @@
 <div class="panel" id="panel-florida">
   <div class="section-title">Florida Grants</div>
   <p class="section-sub">State and Florida foundation grants for nonprofits and for-profit businesses. Not federal.</p>
-  <p class="section-sub" style="color:var(--gold-light);font-weight:600">50+ Florida funders, hand-checked — each entry shows its verified date.</p>
+  <p id="florida-trust" class="section-sub" style="color:var(--gold-light);font-weight:600">Hand-checked Florida grant programs — each entry shows its verified date.</p>
   <div class="tip-box">Confirm the deadline and rules on the official page before you apply. This is a starting list, not a funding decision.</div>
   <div class="row row-3">
     <div>
@@ -1253,6 +1261,7 @@ async function loadFloridaGrants() {
     const data = await res.json().catch(() => ({}));
     floridaGrants = Array.isArray(data.grants) ? data.grants : [];
     if (res.ok && Array.isArray(data.grants)) floridaLiveOk = true;
+    if (res.ok && typeof data.count === 'number') updateFloridaTrust(data.count);
   }
   renderFlorida();
 }
@@ -1374,7 +1383,9 @@ function renderDeadlines() {
   items = items.slice(0, 20);
   document.querySelectorAll('#deadline-chips .chip').forEach(ch => ch.classList.toggle('active', ch.dataset.f === deadlineFilter));
   if (!items.length) {
-    box.innerHTML = '<div class="empty-state"><div class="icon">📅</div><p>None of your saved grants have upcoming deadlines. Save a grant from Federal or Florida search and its deadline will show up here.</p></div>';
+    box.innerHTML = authToken()
+      ? '<div class="empty-state"><div class="icon">📅</div><p>None of your saved grants have upcoming deadlines. Save a grant from Federal or Florida search and its deadline will show up here.</p></div>'
+      : '<div class="empty-state"><div class="icon">🔐</div><p>Sign in to see your saved deadlines.</p></div>';
     return;
   }
   const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
@@ -1396,6 +1407,15 @@ function renderDeadlines() {
 let floridaLivePromise = null;
 let floridaLiveOk = false;
 let savedRefinePromise = null;
+// Florida trust line: show the TOTAL open count from the payload,
+// never a filtered count and never a hard-coded number. Before the
+// list loads, or if it fails, the generic line in the HTML stays —
+// never a blank and never "0".
+function updateFloridaTrust(count) {
+  const el = document.getElementById('florida-trust');
+  if (!el || !Number.isInteger(count) || count <= 0) return;
+  el.textContent = count + ' hand-checked Florida grant programs — each entry shows its verified date.';
+}
 async function ensureFloridaGrants() {
   if (floridaGrants.length) return floridaGrants;
   if (floridaLiveOk) return floridaGrants;
@@ -1409,6 +1429,7 @@ async function ensureFloridaGrants() {
         if (!res.ok || !Array.isArray(data.grants)) throw new Error('florida fetch failed');
         floridaGrants = data.grants;
         floridaLiveOk = true;
+        updateFloridaTrust(floridaGrants.length);
       } catch {
         // Do NOT cache a failure: clear the promise so the next
         // saved-grants load or Calendar open retries. No automatic
@@ -1435,6 +1456,7 @@ function refineSavedGrants() {
   if (savedRefinePromise) return savedRefinePromise;
   savedRefinePromise = (async () => {
     try { await ensureFloridaGrants(); } catch {}
+    if (!authToken()) return; // signed out while the fetch was in flight: do not repaint stale data
     const current = window.__savedGrants || [];
     renderSavedGrants(current);
     renderDeadlines();
@@ -1569,6 +1591,16 @@ function saveClosingSoon(i) {
     amount: Number.isFinite(ceiling) && ceiling > 0 ? '$' + ceiling.toLocaleString() : 'Amount TBD',
     source: 'federal'
   });
+}
+
+// "Check a grant I found" should not silently land on an empty form:
+// if no grant has been loaded to check, say so and how to get one.
+function checkFoundGrant(evt) {
+  const desc = document.getElementById('grant-desc');
+  if (!desc || !desc.value.trim()) {
+    alert("You haven't picked a grant to check yet. Search Florida or federal grants and tap 'Check eligibility' on a grant card — or paste a grant's description into the form below.");
+  }
+  switchTab('eligibility', evt);
 }
 
 function switchTab(id, evt) {
@@ -1758,12 +1790,22 @@ const GHAuth = {
     this.clear();
   },
   async refresh() {
-    const s = this.session;
-    if (!s || !s.refresh_token) { this.clear(); setAccountLabel(); return; }
-    try {
-      const d = await this.api('/token', { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: new URLSearchParams({ grant_type: 'refresh_token', refresh_token: s.refresh_token }).toString() });
-      this.save({ access_token: d.access_token, refresh_token: d.refresh_token || s.refresh_token, expiresAt: Date.now() + (d.expires_in || 3600) * 1000, email: s.email });
-    } catch { this.clear(); setAccountLabel(); }
+    // One shared in-flight refresh: a burst of calls near expiry must
+    // not send several refresh requests with the same token — a server
+    // that rejects a reused refresh token would fail the extras and
+    // sign the user out. Concurrent callers share the first promise;
+    // a later call, after it settles, starts a fresh one.
+    if (this._refreshPromise) return this._refreshPromise;
+    const p = (async () => {
+      const s = this.session;
+      if (!s || !s.refresh_token) { this.clear(); clearSessionState(); return; }
+      try {
+        const d = await this.api('/token', { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: new URLSearchParams({ grant_type: 'refresh_token', refresh_token: s.refresh_token }).toString() });
+        this.save({ access_token: d.access_token, refresh_token: d.refresh_token || s.refresh_token, expiresAt: Date.now() + (d.expires_in || 3600) * 1000, email: s.email });
+      } catch { this.clear(); clearSessionState(); }
+    })();
+    this._refreshPromise = p;
+    try { await p; } finally { if (this._refreshPromise === p) this._refreshPromise = null; }
   },
   openModal(view) {
     const m = document.getElementById('auth-modal');
@@ -1896,9 +1938,58 @@ function showWelcomeIfNeeded() {
   if (w) w.hidden = false;
 }
 
+// Sign-out also clears the previous user's device cache: the stored
+// profile, last search, and last result, plus the on-screen fields
+// those keys fill and the result card — so the next person on a
+// shared computer sees a fresh form, not the last organization's
+// entries. The account's own data (saved grants, profile, outcomes)
+// is untouched and reloads on the next sign-in. This is NOT "Clear
+// saved data": that button also deletes server-side data.
+function clearDeviceCache() {
+  try {
+    localStorage.removeItem(PROFILE_KEY);
+    localStorage.removeItem(SEARCH_KEY);
+    localStorage.removeItem(RESULT_KEY);
+  } catch {}
+  const setVal = (id, v) => { const el = document.getElementById(id); if (el) el.value = v; };
+  const setSel = (id) => { const el = document.getElementById(id); if (el) el.selectedIndex = 0; };
+  setVal('org-industry', '');
+  setVal('org-location', '');
+  setSel('org-type');
+  setSel('org-stage');
+  setSel('org-employees');
+  setVal('grant-desc', '');
+  setVal('grant-name', '');
+  setVal('search-query', '');
+  setSel('search-eligibility');
+  setSel('search-limit');
+  setSel('search-sort');
+  const res = document.getElementById('eligibility-result');
+  if (res) { res.className = 'result-box'; res.innerHTML = ''; }
+  const container = document.getElementById('grants-results');
+  if (container) {
+    const filter = document.getElementById('grant-filter');
+    if (filter) { filter.value = ''; filter.style.display = 'none'; }
+    container.innerHTML = '<div class="empty-state"><div class="icon">🔍</div><p>Run a search to find live grants from Grants.gov.</p></div>';
+  }
+}
+
+// The session has ended — by Sign out, or by a failed token refresh.
+// Clear the in-memory lists and the device cache, then re-render as
+// signed out. The account's own data is untouched and reloads on the
+// next sign-in. Shared by both paths so they cannot drift apart.
+function clearSessionState() {
+  window.__savedGrants = [];
+  window.__outcomes = {};
+  clearDeviceCache();
+  setAccountLabel();
+  loadSavedGrants();
+}
+
 function openAccount() {
   if (GHAuth.session) {
-    GHAuth.logout().then(() => { setAccountLabel(); });
+    // Sign-out must not leave the previous user's data on screen.
+    GHAuth.logout().then(() => { clearSessionState(); });
   } else {
     GHAuth.openModal('login');
   }
@@ -2019,6 +2110,13 @@ async function runEligibilityCheck() {
     <div class="skeleton" style="width:60%"></div>
     <div class="skeleton" style="width:70%"></div>`;
 
+  // Who is signed in, by email — if that changes while the check is in
+  // flight (sign-out, or a different sign-in), the late result must not
+  // repaint the previous user's analysis, re-write the device cache,
+  // sync the form's current fields to whoever is signed in then, or
+  // record the check under the wrong user.
+  const who = signedInEmail();
+
   try {
     const res = await fetch('/.netlify/functions/check-eligibility', {
       method: 'POST',
@@ -2029,6 +2127,7 @@ async function runEligibilityCheck() {
         grantDescription: grantDesc
       })
     });
+    if (signedInEmail() !== who) return; // signed out (or a different user) while the request was in flight
 
     let payload;
     try {
@@ -2055,6 +2154,7 @@ async function runEligibilityCheck() {
       return;
     }
 
+    if (signedInEmail() !== who) return; // signed out (or a different user) while the response was parsed: do not save or render
     saveProfile();
     syncProfileToAccount();
     renderEligibilityResult(payload, grantName, new Date().toISOString());
@@ -2080,16 +2180,16 @@ function showEligibilityError(message) {
 
 
 function buildEligibilityText(data, grantName) {
-  const band = pursuitBand(data.score, data.checks);
+  const status = resultStatus(data);
   const lines = [
     grantName || 'Grant Analysis',
-    `Verdict: ${data.verdict}`,
-    `Match score: ${data.score}/100`,
-    `Pursuit guidance: ${band.label}`,
+    `Verdict: ${status.badgeText}`,
+    `${status.scoreLabel}: ${data.score}/100`,
+    `Pursuit guidance: ${status.bandLabel}`,
     '',
     data.summary,
     '',
-    band.text,
+    status.bandText,
     '',
     'Requirement breakdown'
   ];
@@ -2134,6 +2234,17 @@ function pursuitBand(score, checks) {
         '). A score cannot override a hard no \u2014 clear these before spending effort here.'
     };
   }
+  const unverified = (checks || []).filter(c => c && c.status === 'maybe');
+  if (unverified.length && score < 80) {
+    const names = unverified.slice(0, 3).map(c => c.requirement).join('; ');
+    return {
+      cls: 'provisional',
+      label: 'Not enough information yet \u2014 confirm ' + unverified.length + ' detail' + (unverified.length === 1 ? '' : 's'),
+      text: 'We could not verify ' + unverified.length + ' requirement' + (unverified.length === 1 ? '' : 's') +
+        ' (' + names + (unverified.length > 3 ? '; \u2026' : '') +
+        '). Nothing here rules you out \u2014 add what you know in the Location and Focus Area fields above and run the check again.'
+    };
+  }
   if (score >= 80) {
     return { cls: 'strong', label: 'Strong fit \u2014 worth pursuing',
       text: 'Your profile aligns with the stated requirements. Prioritize this application.' };
@@ -2146,15 +2257,74 @@ function pursuitBand(score, checks) {
     text: 'Your effort is probably better spent on stronger fits. Pursue only for strategic reasons.' };
 }
 
+function resultStatus(data) {
+  const band = pursuitBand(data.score, data.checks);
+  const checks = data.checks || [];
+  const unmet = checks.filter(c => c && c.status === 'no');
+  const unverified = checks.filter(c => c && c.status === 'maybe');
+  const verdict = data.verdict;
+  // A failed requirement is red whatever the model said.
+  if (unmet.length) {
+    return { cls: 'weak', badgeText: 'Unmet requirement', bandLabel: band.label, bandText: band.text, scoreLabel: 'Match Score' };
+  }
+  // The model says Ineligible but nothing in the checks fails: the two
+  // signals disagree, so say so in red.
+  const bandRank = band.cls === 'strong' ? 0 : band.cls === 'weak' ? 2 : 1;
+  if (verdict === 'Ineligible' && bandRank < 2) {
+    return { cls: 'weak', badgeText: 'Conflicting signals', bandLabel: 'Conflicting signals \u2014 read the summary',
+      bandText: 'The model\u2019s verdict disagrees with the requirements above \u2014 read the summary and the breakdown before deciding.',
+      scoreLabel: 'Match Score' };
+  }
+  // Otherwise the unified rank is the more cautious of the verdict and
+  // the band: 0 green, 1 gold, 2 red. The badge shows the verdict when
+  // it agrees with the rank, and the status text when it does not.
+  const verdictRank = verdict === 'Likely Eligible' ? 0 : 1;
+  const rank = Math.max(verdictRank, bandRank);
+  if (rank === 2) {
+    return { cls: 'weak', badgeText: verdict === 'Ineligible' ? 'Ineligible' : 'Weak fit', bandLabel: band.label, bandText: band.text, scoreLabel: 'Match Score' };
+  }
+  if (rank === 1) {
+    if (band.cls === 'provisional') {
+      return { cls: 'provisional', badgeText: 'Review Required', bandLabel: band.label, bandText: band.text, scoreLabel: 'Provisional score' };
+    }
+    if (band.cls === 'strong') {
+      if (unverified.length) {
+        return { cls: 'moderate', badgeText: 'Review Required',
+          bandLabel: 'Strong fit \u2014 confirm ' + unverified.length + ' detail' + (unverified.length === 1 ? '' : 's'),
+          bandText: 'Your profile aligns with the stated requirements, but ' + unverified.length + ' requirement' + (unverified.length === 1 ? '' : 's') +
+            ' could not be verified (' + unverified.slice(0, 3).map(c => c.requirement).join('; ') + (unverified.length > 3 ? '; \u2026' : '') +
+            ') \u2014 confirm ' + (unverified.length === 1 ? 'it' : 'them') + ' before applying.',
+          scoreLabel: 'Match Score' };
+      }
+      return { cls: 'moderate', badgeText: 'Review Required', bandLabel: 'Strong fit \u2014 review required',
+        bandText: 'Your profile aligns with the stated requirements, but the model flagged this for review \u2014 read the summary before applying.',
+        scoreLabel: 'Match Score' };
+    }
+    return { cls: 'moderate', badgeText: 'Review Required', bandLabel: band.label, bandText: band.text, scoreLabel: 'Match Score' };
+  }
+  // Rank 0: strong band, Likely Eligible verdict.
+  if (unverified.length) {
+    return { cls: 'strong', badgeText: 'Likely Eligible',
+      bandLabel: 'Strong fit \u2014 confirm ' + unverified.length + ' detail' + (unverified.length === 1 ? '' : 's'),
+      bandText: 'Your profile aligns with the stated requirements, but ' + unverified.length + ' requirement' + (unverified.length === 1 ? '' : 's') +
+        ' could not be verified (' + unverified.slice(0, 3).map(c => c.requirement).join('; ') + (unverified.length > 3 ? '; \u2026' : '') +
+        ') \u2014 confirm ' + (unverified.length === 1 ? 'it' : 'them') + ' before applying.',
+      scoreLabel: 'Match Score' };
+  }
+  return { cls: 'strong', badgeText: 'Likely Eligible', bandLabel: band.label, bandText: band.text, scoreLabel: 'Match Score' };
+}
+
 function renderEligibilityResult(data, grantName, savedAt) {
   const resultBox = document.getElementById('eligibility-result');
-  // Score ring color follows the pursuit band, so the number tells the same
-  // story as the label: green 80+ strong, gold 60-79 moderate, red below 60
-  // (or whenever a hard requirement is unmet and the band forces weak).
-  const band = pursuitBand(data.score, data.checks);
-  const scoreColor = band.cls === 'strong' ? 'var(--success)' : band.cls === 'moderate' ? 'var(--gold)' : 'var(--error)';
-  const verdictClass = data.verdict === 'Likely Eligible' ? 'eligible' : data.verdict === 'Ineligible' ? 'ineligible' : 'review';
-  const verdictDot = data.verdict === 'Likely Eligible' ? '●' : data.verdict === 'Ineligible' ? '✕' : '◐';
+  // Badge, ring, band, score label, and copied text all follow one
+  // status — the more cautious of the model's verdict and the band
+  // from the checks — so they cannot contradict each other. The
+  // model's raw verdict is not shown on the card; it stays in the
+  // saved data.
+  const status = resultStatus(data);
+  const scoreColor = status.cls === 'strong' ? 'var(--success)' : status.cls === 'weak' ? 'var(--error)' : 'var(--gold)';
+  const verdictClass = status.cls === 'strong' ? 'eligible' : status.cls === 'weak' ? 'ineligible' : 'provisional';
+  const verdictDot = status.cls === 'strong' ? '●' : status.cls === 'weak' ? '✕' : '◐';
 
   const checksHtml = data.checks.map(check => {
     const icon = check.status === 'yes' ? '✓' : check.status === 'no' ? '✗' : '~';
@@ -2176,7 +2346,7 @@ function renderEligibilityResult(data, grantName, savedAt) {
         <div style="font-family:'Playfair Display',serif;font-size:18px;color:var(--cream);margin-bottom:8px">
           ${escapeHTML(grantName || 'Grant Analysis')}
         </div>
-        <div class="status-badge ${verdictClass}">${verdictDot} ${escapeHTML(data.verdict)}</div>
+        <div class="status-badge ${verdictClass}">${verdictDot} ${escapeHTML(status.badgeText)}</div>
       </div>
       <div style="display:flex;gap:8px;flex-wrap:wrap">
         <button class="btn-ghost" onclick="saveCurrentResult()">Save grant</button>
@@ -2189,15 +2359,15 @@ function renderEligibilityResult(data, grantName, savedAt) {
         <span style="color:${scoreColor}">${data.score}<small>/100</small></span>
       </div>
       <div class="score-copy">
-        <div style="font-size:11px;color:var(--muted);margin-bottom:6px;font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:1px">Match Score</div>
+        <div style="font-size:11px;color:var(--muted);margin-bottom:6px;font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:1px">${status.scoreLabel}</div>
         <div style="font-size:15px;color:var(--cream);line-height:1.55">${escapeHTML(data.summary)}</div>
       </div>
     </div>
 
-    <div class="pursuit-band ${band.cls}">
+    <div class="pursuit-band ${status.cls}">
       <div>
-        <div class="pb-label">${escapeHTML(band.label)}</div>
-        <div style="margin-top:4px;color:var(--muted)">${escapeHTML(band.text)}</div>
+        <div class="pb-label">${escapeHTML(status.bandLabel)}</div>
+        <div style="margin-top:4px;color:var(--muted)">${escapeHTML(status.bandText)}</div>
       </div>
     </div>
     <div style="font-family:'DM Mono',monospace;font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--gold);margin-bottom:10px">
@@ -2389,6 +2559,13 @@ function authToken() {
   return GHAuth.token();
 }
 
+// Who is signed in, by email — not by token. Tokens refresh in the
+// background, so a token comparison would drop a legitimate load;
+// the email only changes on sign-out or a different sign-in.
+function signedInEmail() {
+  return (GHAuth.session && GHAuth.session.email) || '';
+}
+
 function requireSignIn() {
   if (authToken()) return true;
   GHAuth.openModal('login');
@@ -2470,13 +2647,21 @@ async function loadSavedGrants() {
     if (ns) ns.innerHTML = '';
     const cs = document.getElementById('closing-soon');
     if (cs) { cs.style.display = 'none'; cs.innerHTML = ''; }
+    // Signed out: drop the previous user's in-memory list too, and
+    // clear the Calendar, which reads the same list.
+    window.__savedGrants = [];
+    window.__outcomes = {};
+    renderDeadlines();
     return;
   }
+  const who = signedInEmail();
   const res = await fetch('/.netlify/functions/saved-grants', { headers: { Authorization: 'Bearer ' + token } });
+  if (signedInEmail() !== who) return; // signed out (or a different user) while the request was in flight
   const data = await res.json().catch(() => ({}));
   const grants = Array.isArray(data.grants) ? data.grants : [];
   window.__savedGrants = grants;
   await loadOutcomes();
+  if (signedInEmail() !== who) return; // outcomes fetch crossed a sign-out: do not repaint
   // Render first from saved copies — do not wait on Florida — then
   // refine in the background. refineSavedGrants reads the CURRENT
   // saved list at completion, so it cannot resurrect a removed grant.
@@ -2488,6 +2673,7 @@ async function loadSavedGrants() {
 }
 
 async function loadOutcomes() {
+  const who = signedInEmail();
   const map = {};
   try {
     const res = await fetch('/.netlify/functions/outcomes', { headers: { Authorization: 'Bearer ' + authToken() } });
@@ -2498,6 +2684,7 @@ async function loadOutcomes() {
       }
     }
   } catch {}
+  if (signedInEmail() !== who) return; // signed out (or a different user) while the request was in flight
   window.__outcomes = map;
 }
 
