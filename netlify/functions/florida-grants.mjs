@@ -229,12 +229,12 @@ const GRANTS = [
     agency: "Community Foundation for Northeast Florida",
     audience: "nonprofit",
     amount: "Amount varies",
-    closeDate: "December 2, 2026",
-    deadline: "2026-12-02",
-    verified: "2026-11-01",
+    closeDate: "November 30, 2026",
+    deadline: "2026-11-30",
+    verified: "2026-11-10",
     category: "Community",
     region: "Northeast Florida",
-    summary: "Grants for 501(c)(3)s (or fiscally sponsored organizations) with at least two years of work serving the Beaches area from Mayport to Guana, east of the Intracoastal Waterway. Narrow geography — Beaches organizations only.",
+    summary: "Grants for 501(c)(3)s (or fiscally sponsored organizations) with at least two years of work serving the Beaches area from Mayport to Guana, east of the Intracoastal Waterway. Narrow geography — Beaches organizations only. Applications due by 11:59 PM.",
     url: "https://www.jaxcf.org/grants/beaches-community-fund/"
   },
   {
@@ -781,7 +781,11 @@ function reviewByFor(g) {
 }
 
 export default async function () {
-  const today = new Date().toISOString().slice(0, 10);
+  // Roll off by the EASTERN calendar date, not UTC: a deadline of "11:59 PM" on the 30th must stay listed
+  // until the 30th ends in Florida, not until 7 PM Eastern (midnight UTC).
+  const parts = new Intl.DateTimeFormat("en-US", { timeZone: "America/New_York", year: "numeric", month: "2-digit", day: "2-digit" }).formatToParts(new Date());
+  const get = (t) => parts.find(p => p.type === t).value;
+  const today = get("year") + "-" + get("month") + "-" + get("day");
   const open = GRANTS.filter(g => !g.deadline || g.deadline >= today);
   const grants = open.map(g => ({ ...g, reviewBy: reviewByFor(g) }));
   return json(200, { source: "florida", count: grants.length, closedCount: GRANTS.length - grants.length, grants });
