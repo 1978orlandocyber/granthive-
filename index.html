@@ -424,6 +424,10 @@
   .empty-state .icon { font-size: 36px; margin-bottom: 12px; }
   .empty-state p { font-size: 14px; }
 
+  #grants-results .empty-state, #award-results .empty-state { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 32px 24px; margin-bottom: 20px; }
+  .empty-title { font-family: 'Playfair Display', serif; font-size: 20px; color: var(--gold); margin: 0 0 8px; }
+  .empty-actions { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; margin-top: 16px; }
+
   .code-block {
     background: #0a0a0c;
     border: 1px solid var(--border);
@@ -643,6 +647,10 @@
   .ready-foot { font-size: 13px; color: var(--muted); margin: 18px 0 0; }
   .ready-pills { display: flex; gap: 10px; flex-wrap: wrap; margin: 10px 0 0; }
   .ready-pill { display: inline-flex; align-items: center; min-height: 44px; padding: 10px 16px; border: 1px solid var(--gold); border-radius: 999px; color: var(--gold); text-decoration: none; font-weight: 600; box-sizing: border-box; }
+
+  .topic-help { font-size: 13px; color: var(--muted); margin: 6px 0 0; }
+  .topic-strip { font-size: 13px; color: var(--muted); margin: 8px 0 0; }
+  .topic-chip { display: inline-flex; align-items: center; min-height: 44px; padding: 10px 16px; margin: 2px; border: 1px solid var(--gold); border-radius: 999px; background: none; color: var(--gold); font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; box-sizing: border-box; }
   .legal-links { text-align: center; margin: 26px 0 8px; color: var(--muted); font-size: 14px; }
   .legal-links a { color: var(--gold); }
   .site-footer { text-align: center; padding: 26px 16px 40px; color: var(--muted); font-size: 13px; border-top: 1px solid var(--border); margin-top: 24px; }
@@ -724,7 +732,7 @@
 </header>
 
 <form class="site-search" onsubmit="siteSearch(event)">
-  <input id="site-search" type="search" placeholder="Search federal grants" autocomplete="off">
+  <input id="site-search" type="search" placeholder="Search federal grants by keyword" autocomplete="off">
   <button type="submit">Search</button>
 </form>
 
@@ -947,7 +955,9 @@
   <div id="grants-results">
     <div class="empty-state">
       <div class="icon">🔍</div>
-      <p>Run a search to find live grants from Grants.gov.</p>
+      <div class="empty-title">No grants yet</div>
+      <p>Try a broader word, or open Florida.</p>
+      <div class="empty-actions"><button type="button" class="btn" onclick="switchTab('florida', event)">Open Florida</button><button type="button" class="btn-ghost" onclick="switchTab('eligibility', event)">Check eligibility</button></div>
     </div>
   </div>
 </div>
@@ -989,7 +999,8 @@
   <div id="award-results">
     <div class="empty-state">
       <div class="icon">&#x1F3C6;</div>
-      <p>Run a search to see who won federal grants</p>
+      <div class="empty-title">See who won</div>
+      <p>Search a topic to see real federal awards.</p>
     </div>
   </div>
 </div>
@@ -1010,8 +1021,10 @@
       </select>
     </div>
     <div>
-      <label>Search</label>
-      <input id="florida-filter" type="search" placeholder="Title, agency, category, or region" oninput="renderFlorida()">
+      <label for="florida-filter">Search by topic</label>
+      <input id="florida-filter" type="search" placeholder="e.g. youth, workforce, food, housing, health" oninput="renderFlorida()">
+      <p class="topic-help">Matches words in each grant's description. Try one topic word.</p>
+      <p class="topic-strip">In funder language: <button type="button" class="topic-chip" data-term="kids">kids → youth</button> <button type="button" class="topic-chip" data-term="jobs">jobs → workforce</button> <button type="button" class="topic-chip" data-term="seniors">seniors → aging</button></p>
     </div>
     <div>
       <label>Region</label>
@@ -1298,19 +1311,63 @@ async function loadFloridaGrants() {
   renderFlorida();
 }
 
+const TOPIC_STOP = new Set(['a', 'an', 'the', 'to', 'of', 'for', 'in', 'and', 'or', 'as', 'at', 'by', 'on', 'is', 'it', 'this', 'that', 'be', 'are', 'was', 'were', 'we', 'our', 'they', 'their', 'he', 'she', 'i', 'you', 'your', 'do', 'does', 'can', 'could', 'get', 'getting', 'help', 'me', 'my', 'with', 'from', 'out', 'keep', 'keeping', 'stay', 'staying', 'program', 'programs', 'grant', 'grants', 'find', 'looking', 'want', 'need']);
+const TOPIC_SYNONYMS = {
+  kids: ['youth', 'children', 'students', 'young', 'teen'],
+  kid: ['youth', 'children', 'students', 'young', 'teen'],
+  jobs: ['workforce', 'employment', 'career'],
+  job: ['workforce', 'employment', 'career'],
+  seniors: ['aging', 'elderly', 'older'],
+  senior: ['aging', 'elderly', 'older'],
+  hunger: ['food'],
+  school: ['education', 'students'],
+  schools: ['education', 'students'],
+  training: ['workforce', 'education'],
+  housing: ['homeless', 'shelter'],
+  mentoring: ['mentor'],
+  veterans: ['veteran', 'military'],
+  prison: ['reentry'],
+  health: ['healthcare', 'healthy'],
+  healthcare: ['health'],
+  healthy: ['health'],
+  education: ['educational'],
+  educational: ['education']
+};
+function topicStem(w) {
+  return w.replace(/(ies)$/, 'y').replace(/(ing|ed|es|s)$/, '');
+}
+function topicWords(text) {
+  return String(text || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').split(' ').filter(Boolean);
+}
+function topicScore(g, words) {
+  const hay = new Set(topicWords([g.title, g.agency, g.category, g.region, g.summary].join(' ')).map(topicStem));
+  let score = 0;
+  for (const w of words) {
+    const alts = [w].concat(TOPIC_SYNONYMS[w] || []).map(topicStem).filter(a => a.length > 1);
+    if (alts.some(a => hay.has(a))) score++;
+  }
+  return score;
+}
 function renderFlorida() {
   const box = document.getElementById('florida-results');
   const audience = document.getElementById('florida-audience').value;
   const region = document.getElementById('florida-region').value;
   const term = (document.getElementById('florida-filter').value || '').trim().toLowerCase();
-  const shown = floridaGrants.filter(g => {
+  const words = topicWords(term).filter(w => !TOPIC_STOP.has(w) && topicStem(w).length > 1);
+  const scored = floridaGrants.map((g, idx) => ({ g, idx, score: words.length ? topicScore(g, words) : 0 }));
+  const shown = scored.filter(x => {
+    const g = x.g;
     if (audience && g.audience !== audience && g.audience !== 'both') return false;
     if (region && g.region !== region) return false;
-    if (!term) return true;
-    return [g.title, g.agency, g.category, g.region, g.summary].join(' ').toLowerCase().includes(term);
-  });
+    if (!words.length) return true;
+    return x.score > 0;
+  }).sort((a, b) => b.score - a.score || a.idx - b.idx).map(x => x.g);
   if (!shown.length) {
-    box.innerHTML = '<div class="empty-state"><div class="icon">🔎</div><p>No Florida grants match that filter.</p></div>';
+    if (term) {
+      box.innerHTML = '<div class="empty-state"><div class="icon">🔎</div><p>No Florida grants match "' + escapeHTML(term) + '."</p><p>Try one topic word: <button type="button" class="topic-chip" data-term="youth">youth</button> <button type="button" class="topic-chip" data-term="workforce">workforce</button> <button type="button" class="topic-chip" data-term="food">food</button> <button type="button" class="topic-chip" data-term="housing">housing</button> <button type="button" class="topic-chip" data-term="health">health</button></p><p><a href="#" onclick="switchTab(\'grants\', event);return false;" style="color:var(--gold)">Search federal grants instead →</a></p></div>';
+    } else {
+      box.innerHTML = '<div class="empty-state"><div class="icon">🔎</div><p>No Florida grants match that filter.</p></div>';
+    }
     return;
   }
   box.innerHTML = shown.map(g => `
@@ -1764,7 +1821,7 @@ async function clearSavedData() {
   document.getElementById('eligibility-result').innerHTML = '';
   const container = document.getElementById('grants-results');
   if (container) {
-    document.getElementById('grant-filter').value = ''; document.getElementById('grant-filter').style.display = 'none'; container.innerHTML = '<div class="empty-state"><div class="icon">🔍</div><p>Run a search to find live grants from Grants.gov.</p></div>';
+    document.getElementById('grant-filter').value = ''; document.getElementById('grant-filter').style.display = 'none'; container.innerHTML = '<div class="empty-state"><div class="icon">🔍</div><div class="empty-title">No grants yet</div><p>Try a broader word, or open Florida.</p><div class="empty-actions"><button type="button" class="btn" onclick="switchTab(\'florida\', event)">Open Florida</button><button type="button" class="btn-ghost" onclick="switchTab(\'eligibility\', event)">Check eligibility</button></div></div>';
   }
   alert(token ? 'Cleared on this device and on your account.' : 'Cleared on this device. Sign in to also clear your account data.');
 }
@@ -2002,7 +2059,7 @@ function clearDeviceCache() {
   if (container) {
     const filter = document.getElementById('grant-filter');
     if (filter) { filter.value = ''; filter.style.display = 'none'; }
-    container.innerHTML = '<div class="empty-state"><div class="icon">🔍</div><p>Run a search to find live grants from Grants.gov.</p></div>';
+    container.innerHTML = '<div class="empty-state"><div class="icon">🔍</div><div class="empty-title">No grants yet</div><p>Try a broader word, or open Florida.</p><div class="empty-actions"><button type="button" class="btn" onclick="switchTab(\'florida\', event)">Open Florida</button><button type="button" class="btn-ghost" onclick="switchTab(\'eligibility\', event)">Check eligibility</button></div></div>';
   }
 }
 
@@ -2459,7 +2516,7 @@ async function searchGrants() {
     document.getElementById('grant-filter').value = '';
     if (!grants.length) {
       document.getElementById('grant-filter').style.display = 'none';
-      container.innerHTML = '<div class="empty-state"><div class="icon">📭</div><p>No grants found. Try different keywords.</p></div>';
+      container.innerHTML = '<div class="empty-state"><div class="icon">📭</div><div class="empty-title">No federal grants for that</div><p>Try health, education, or housing — or browse the Florida list.</p><div class="empty-actions"><button type="button" class="btn" onclick="switchTab(\'florida\', event)">Try Florida</button><button type="button" class="btn-ghost" onclick="document.getElementById(\'search-query\').focus();document.getElementById(\'search-query\').scrollIntoView({block:\'center\'});">Change keywords</button></div></div>';
     } else {
       showGrantResults('via GrantComb search');
     }
@@ -2532,7 +2589,7 @@ async function searchAwards() {
 
     lastAwards = data.awards.map((a, i) => ({ ...a, _index: i }));
     if (!lastAwards.length) {
-      box.innerHTML = '<div class="empty-state"><div class="icon">📭</div><p>No awards found. Try different keywords.</p></div>';
+      box.innerHTML = '<div class="empty-state"><div class="icon">📭</div><div class="empty-title">No awards for that</div><p>Try a broader word, or search open grants.</p><div class="empty-actions"><button type="button" class="btn" onclick="switchTab(\'grants\', event)">Search Federal Grants</button></div></div>';
     } else {
       box.innerHTML =
         `<div class="results-header">
@@ -2912,6 +2969,12 @@ document.getElementById('ready-list').addEventListener('click', (e) => {
     item.classList.add('open');
     btn.setAttribute('aria-expanded', 'true');
   }
+});
+document.getElementById('panel-florida').addEventListener('click', (e) => {
+  const chip = e.target.closest('.topic-chip');
+  if (!chip) return;
+  document.getElementById('florida-filter').value = chip.dataset.term;
+  renderFlorida();
 });
 document.getElementById('deadline-chips').addEventListener('click', (event) => {
   const ch = event.target.closest('.chip');
