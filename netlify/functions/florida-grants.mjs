@@ -243,9 +243,9 @@ const GRANTS = [
     agency: "Collaboratory (Southwest Florida Community Foundation)",
     audience: "nonprofit",
     amount: "Up to $5,000",
-    closeDate: "November 12, 2026",
-    deadline: "2026-11-12",
-    verified: "2026-11-02",
+    closeDate: "November 20, 2026",
+    deadline: "2026-11-20",
+    verified: "2026-11-17",
     category: "Health",
     region: "Southwest Florida",
     summary: "Micro-grants (up to 8 awards) for 501(c)(3)s in Charlotte, Glades, or Hendry counties working on health, well-being, and root-cause projects. Decisions announced by December 1, 2026. Deadline is 5 p.m. Eastern.",
@@ -735,11 +735,11 @@ const GRANTS = [
     amount: "Up to about $100,000 per year",
     closeDate: "Annual — spring window",
     deadline: "",
-    verified: "2026-11-01",
+    verified: "2026-11-17",
     category: "Health",
     region: "Central Florida",
     summary: "Annual grants for 501(c)(3)s serving Orange, Osceola, Seminole, and South Lake counties, for programs addressing 2026-cycle Community Health Needs Assessment priorities (housing instability, transportation, food insecurity). Starts with an Expression of Interest; invited full proposals follow; funding begins January 1 of the following year.",
-    url: "https://www.adventhealth.com/community-benefit/central-florida/community-health"
+    url: "https://www.adventhealth.com/central-florida-community-benefit/community-health"
   },
   {
     id: "fl-duke-rolling",
