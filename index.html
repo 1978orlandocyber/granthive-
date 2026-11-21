@@ -732,29 +732,24 @@
   <button class="btn-ghost" id="account-btn" onclick="openAccount()">Sign in</button>
 </header>
 
-<form class="site-search" onsubmit="siteSearch(event)">
-  <input id="site-search" type="search" placeholder="Search federal grants by keyword" autocomplete="off">
-  <button type="submit">Search</button>
-</form>
-
 <p class="start-here"><strong>Start here:</strong> <a class="start-chip" href="#" onclick="switchTab('florida', event);return false;">Browse Florida grants</a> <a class="start-chip" href="#" onclick="checkFoundGrant(event);return false;">Check a grant I found</a> <a class="start-chip" href="#" onclick="switchTab('getready', event);return false;">New? Get Ready</a></p>
 <div id="closing-soon" class="tip-box" style="display:none;margin:12px 16px 0"></div>
 <div class="tabs">
-  <div class="tab active" onclick="switchTab('eligibility', event)">Eligibility</div>
-  <div class="tab" onclick="switchTab('florida', event)">Florida</div>
-  <div class="tab" onclick="switchTab('getready', event)">Get Ready</div>
+  <div class="tab active" onclick="switchTab('florida', event)">Florida</div>
   <div class="tab" onclick="switchTab('grants', event)">Federal</div>
-  <div class="tab" onclick="switchTab('winners', event)">Winners</div>
-  <div class="tab" onclick="switchTab('calendar', event)">Calendar</div>
+  <div class="tab" onclick="switchTab('eligibility', event)">Check a grant</div>
+  <div class="tab" onclick="switchTab('getready', event)">Get Ready</div>
   <div class="tab" onclick="switchTab('saved', event)">Saved</div>
+  <div class="tab" onclick="switchTab('calendar', event)">Calendar</div>
+  <div class="tab" onclick="switchTab('winners', event)">Past awards</div>
   <!-- PILOT: Pro tab hidden until pricing + payment exist; panel-pro kept in code for restore -->
   <div class="tab" style="display:none" onclick="switchTab('pro', event)">Pro</div>
   <div class="tab" onclick="switchTab('faq', event)">FAQ</div>
 </div>
 
 <!-- ELIGIBILITY CHECKER -->
-<div class="panel active" id="panel-eligibility">
-  <div class="section-title">Eligibility</div>
+<div class="panel" id="panel-eligibility">
+  <div class="section-title">Check a grant</div>
   <p class="section-sub">Check one real grant against your organization. The app does not pick the grant for you.</p>
 
   <div class="tip-box">
@@ -967,7 +962,7 @@
 
 <!-- AWARD HISTORY -->
 <div class="panel" id="panel-winners">
-  <div class="section-title">Winners</div>
+  <div class="section-title">Past awards</div>
   <p class="section-sub">Who actually won federal grants — from USAspending.gov, the free public record. Pair this with the Federal search: find what&apos;s open, then see who gets funded.</p>
 
   <div class="card">
@@ -1007,7 +1002,7 @@
 </div>
 
 <!-- FLORIDA -->
-<div class="panel" id="panel-florida">
+<div class="panel active" id="panel-florida">
   <div class="section-title">Florida Grants</div>
   <p class="section-sub">State and Florida foundation grants for nonprofits and for-profit businesses. Not federal.</p>
   <p id="florida-trust" class="section-sub" style="color:var(--gold-light);font-weight:600">Hand-checked Florida grant programs — each entry shows its verified date.</p>
@@ -1156,7 +1151,7 @@
         <li>Eligibility check</li>
         <li>Federal search</li>
         <li>Florida starter list</li>
-        <li>Award history (Winners)</li>
+        <li>Award history (Past awards)</li>
         <li>Grant calendar</li>
         <li>Saved grants</li>
       </ul>
@@ -1285,17 +1280,6 @@ function escapeHTML(value) {
 
 // ─── TAB SWITCHING ───
 
-function siteSearch(event) {
-  event.preventDefault();
-  const q = document.getElementById('site-search').value.trim();
-  if (!q) return;
-  const input = document.getElementById('search-query');
-  if (input) input.value = q;
-  switchTab('grants');
-  searchGrants();
-}
-
-
 let floridaGrants = [];
 
 async function loadFloridaGrants() {
@@ -1303,11 +1287,17 @@ async function loadFloridaGrants() {
   if (!box) return;
   if (!floridaGrants.length) {
     box.innerHTML = '<div class="loading-row"><span class="spinner"></span> Loading Florida grants...</div>';
-    const res = await fetch('/.netlify/functions/florida-grants');
-    const data = await res.json().catch(() => ({}));
-    floridaGrants = Array.isArray(data.grants) ? data.grants : [];
-    if (res.ok && Array.isArray(data.grants)) floridaLiveOk = true;
-    if (res.ok && typeof data.count === 'number') updateFloridaTrust(data.count);
+    try {
+      const res = await fetch('/.netlify/functions/florida-grants');
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !Array.isArray(data.grants)) throw new Error('Florida list unavailable');
+      floridaGrants = data.grants;
+      floridaLiveOk = true;
+      if (typeof data.count === 'number') updateFloridaTrust(data.count);
+    } catch (e) {
+      box.innerHTML = '<div class="empty-state"><div class="icon">📭</div><div class="empty-title">Couldn\'t load the Florida list</div><p>Check your connection and try again.</p><div class="empty-actions"><button type="button" class="btn" onclick="loadFloridaGrants()">Try again</button></div></div>';
+      return;
+    }
   }
   renderFlorida();
 }
@@ -3006,6 +2996,8 @@ setInterval(() => { if (GHAuth.session) GHAuth.token(); }, 5 * 60 * 1000);
 restoreLastSearch();
 restoreLastResult();
 showWelcomeIfNeeded();
+// ROUND 18 FIX (Nov 21): app opens on Florida — load the list on page load.
+loadFloridaGrants();
 if (location.hash === '#faq') switchTab('faq');
 </script>
 </body>
